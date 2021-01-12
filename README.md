@@ -7,6 +7,10 @@
 
 Copyright Cameron Newnham 2015-2016
 ~~~
+
+The source repository can be found on [bitbucket](https://bitbucket.org/camnewnham/chromodoris)
+and the plugin on [Food4Rhino](https://www.food4rhino.com/app/chromodoris).
+
 ## General ##
 ---
 ### Purpose ###
