@@ -1,5 +1,6 @@
+# Fork of Cameron Newnham's
 ~~~
-  ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
+  ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____
  / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
 ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
  \___)\_)(_/(__\_) \__/ \_)(_/ \__/(____/ \__/(__\_)(__)(____/
@@ -10,7 +11,7 @@ Copyright Cameron Newnham 2015-2016
 ---
 ### Purpose ###
 
-This library is intended for use with Grasshopper, an extension to the 3D software Rhinoceros 3D. The goal of this library is to provide efficient and simple functionality to extend the creation, usage and display of meshes. 
+This library is intended for use with Grasshopper, an extension to the 3D software Rhinoceros 3D. The goal of this library is to provide efficient and simple functionality to extend the creation, usage and display of meshes.
 
 There are multiple available, in-depth and powerful solutions for some of what is covered by this library. This is not intended as a replacement, but rather a simple, efficient, and functional alternative particularly for use in dealing with large quantities of data and geometry.
 
@@ -71,5 +72,5 @@ Distributed as a compiled DLL, however the exact source code is available upon r
 #### toxiclibs volume (for isosurfacing) ####
 LGPL, Karsten Schmidt. https://bitbucket.org/postspectacular/toxiclibs
 
-This library made use of publicly available information from the following:  
+This library made use of publicly available information from the following:
 Mirco Becker, "Mesh Curvature Analysis for Rhino Grasshopper", python code, http://www.informance-design.com/?p=690
