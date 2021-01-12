@@ -21,11 +21,9 @@
  *
  */
 
-using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Rhino.Geometry;
 
 namespace Chromodoris.MeshTools
 {
@@ -42,7 +40,7 @@ namespace Chromodoris.MeshTools
         public CurvatureApproximation(Mesh mesh)
         {
             this.mesh = mesh;
-            
+
             int c = mesh.Vertices.Count;
             minRad = new double[c];
             maxRad = new double[c];
@@ -56,7 +54,11 @@ namespace Chromodoris.MeshTools
 
         public void Compute()
         {
-            if (mesh.Normals.Count == 0) mesh.Normals.ComputeNormals();
+            if (mesh.Normals.Count == 0)
+            {
+                mesh.Normals.ComputeNormals();
+            }
+
             double epsilon = 0.0001;
 
             var topoRef = new Dictionary<int, int>();

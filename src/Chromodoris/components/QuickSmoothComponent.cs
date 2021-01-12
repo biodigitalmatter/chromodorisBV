@@ -22,10 +22,8 @@
  */
 
 using System;
-using System.Collections.Generic;
 
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 
 namespace Chromodoris.Components
 {
@@ -73,7 +71,11 @@ namespace Chromodoris.Components
             double step = 0.5;
             int iterations = 1;
 
-            if (!DA.GetData(0, ref mesh)) return;
+            if (!DA.GetData(0, ref mesh))
+            {
+                return;
+            }
+
             DA.GetData(1, ref step);
             DA.GetData(2, ref iterations);
 

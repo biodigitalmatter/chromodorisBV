@@ -21,9 +21,9 @@
  *
  */
 
+using System;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using System;
 
 namespace Chromodoris
 {
@@ -70,16 +70,27 @@ namespace Chromodoris
             double isovalue = 0;
             float[,,] voxelData = null;
 
-            if (!DA.GetData(0, ref box))   return;
-            if (!DA.GetData(1, ref voxelData)) return;
-            if (!DA.GetData(2, ref isovalue)) return;
+            if (!DA.GetData(0, ref box))
+            {
+                return;
+            }
+
+            if (!DA.GetData(1, ref voxelData))
+            {
+                return;
+            }
+
+            if (!DA.GetData(2, ref isovalue))
+            {
+                return;
+            }
             //DA.GetData(3, ref merge);
 
-            
+
             VolumetricSpace vs = new VolumetricSpace(voxelData);
             HashIsoSurface isosurface = new HashIsoSurface(vs);
             Rhino.Geometry.Mesh mesh = new Rhino.Geometry.Mesh();
-            
+
             isosurface.computeSurfaceMesh(isovalue, ref mesh);
             transformMesh(mesh, box, voxelData);
             DA.SetData(0, mesh);
@@ -99,7 +110,7 @@ namespace Chromodoris
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
                 return Chromodoris.Properties.Resources.Icon_Isosurface;
-               // return null;
+                // return null;
             }
         }
 
@@ -115,9 +126,9 @@ namespace Chromodoris
         {
 
 
-            int x = data.GetLength(0)-1;
-            int y = data.GetLength(1)-1;
-            int z = data.GetLength(2)-1;
+            int x = data.GetLength(0) - 1;
+            int y = data.GetLength(1) - 1;
+            int z = data.GetLength(2) - 1;
 
 
             Box gridBox = new Box(Plane.WorldXY, new Interval(0, x), new Interval(0, y), new Interval(0, z));
@@ -131,4 +142,3 @@ namespace Chromodoris
         }
     }
 }
- 

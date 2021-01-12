@@ -23,10 +23,9 @@
 
 using System;
 using System.Collections.Generic;
-
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
 
 namespace Chromodoris.Components
 {
@@ -58,14 +57,19 @@ namespace Chromodoris.Components
             List<Polyline> pls = new List<Polyline>();
             bool cap = false;
 
-            if (!DA.GetDataList("Polylines", crvs)) return;
+            if (!DA.GetDataList("Polylines", crvs))
+            {
+                return;
+            }
+
             DA.GetData("Cap", ref cap);
 
             int count = -1;
             foreach (var c in crvs)
             {
                 Polyline p;
-                if (c.TryGetPolyline(out p)) {
+                if (c.TryGetPolyline(out p))
+                {
                     if (count == -1)
                     {
                         count = p.Count;
@@ -80,13 +84,14 @@ namespace Chromodoris.Components
                     }
 
                     pls.Add(p);
-                } else
+                }
+                else
                 {
                     this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Input must be polylines.");
                     return;
                 }
             }
-            
+
             DA.SetData("Mesh", new GH_Mesh(GetLofted(pls, cap)));
         }
 
@@ -98,8 +103,10 @@ namespace Chromodoris.Components
             int count = polylines[0].Count;
 
             int step = count;
-            if (closed) step--;
-
+            if (closed)
+            {
+                step--;
+            }
 
             if (polylines.Count > 0)
             {
@@ -121,7 +128,10 @@ namespace Chromodoris.Components
                     {
                         if (v == step)
                         {
-                            if (closed) mesh.Faces.AddFace(lastVerts[v - 1], lastVerts[0], newVerts[0], newVerts[v - 1]);
+                            if (closed)
+                            {
+                                mesh.Faces.AddFace(lastVerts[v - 1], lastVerts[0], newVerts[0], newVerts[v - 1]);
+                            }
                         }
                         else
                         {
@@ -141,8 +151,8 @@ namespace Chromodoris.Components
 
             return mesh;
         }
-            
-            
+
+
         protected override System.Drawing.Bitmap Icon
         {
             get

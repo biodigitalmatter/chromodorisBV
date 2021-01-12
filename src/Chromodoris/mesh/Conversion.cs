@@ -21,12 +21,8 @@
  *
  */
 
-using Rhino.Geometry;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Rhino.Geometry;
 
 namespace Chromodoris.MeshTools
 {
@@ -57,7 +53,7 @@ namespace Chromodoris.MeshTools
 
             return m;
         }
-        
+
         public static bool MeshToPlanes(Mesh mesh, ref List<Plane> planes)
         {
             foreach (MeshFace f in mesh.Faces)
@@ -74,7 +70,8 @@ namespace Chromodoris.MeshTools
                     Vector3d y = v1 - v0;
 
                     planes.Add(new Plane(ctr, x, y));
-                } else
+                }
+                else
                 {
                     return false;
                 }

@@ -22,10 +22,8 @@
  */
 
 using System;
-using System.Collections.Generic;
 
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using Grasshopper.Kernel.Types;
 
 namespace Chromodoris
@@ -56,7 +54,8 @@ namespace Chromodoris
 
             float[,,] myDat = null;
 
-            if (!DA.GetData("Data", ref myDat)) { 
+            if (!DA.GetData("Data", ref myDat))
+            {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Could not parse input data as float[,,].");
                 return;
             }

@@ -5,10 +5,7 @@
 */
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Rhino.Geometry;
 
 namespace Chromodoris
@@ -79,7 +76,7 @@ namespace Chromodoris
                                 double isoDiff = isoValue - offsetData;
                                 if ((edgeFlags & 1) > 0)
                                 {
-                                    double t = isoDiff  / (volume.getVoxelAt(offset + 1) - offsetData);
+                                    double t = isoDiff / (volume.getVoxelAt(offset + 1) - offsetData);
                                     edgeVertices[edgeOffsetIndex] = mesh.Vertices.Add(offsetX + t, y, z);
                                 }
 
@@ -114,7 +111,7 @@ namespace Chromodoris
                 short[] tmp = prevCellIndexCache;
                 prevCellIndexCache = cellIndexCache;
                 cellIndexCache = tmp;
-                offsetZ ++;
+                offsetZ++;
             }
             createFacesForSlice(mesh, resZ1 - 1);
             return mesh;
@@ -234,7 +231,7 @@ namespace Chromodoris
         public void reset()
         {
             edgeVertices = new Dictionary<int, int>(
-                    (int)(resX * resY * 10));
+                    resX * resY * 10);
         }
     }
 }

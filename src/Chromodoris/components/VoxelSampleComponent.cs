@@ -26,7 +26,6 @@ using System.Collections.Generic;
 
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using Grasshopper.Kernel.Types;
 
 namespace Chromodoris
 {
@@ -67,10 +66,22 @@ namespace Chromodoris
             bool bulge = false;
             bool linear = true;
 
-            if (!DA.GetDataList(0, points)) return;
+            if (!DA.GetDataList(0, points))
+            {
+                return;
+            }
+
             DA.GetDataList(1, charges); // Optional
-            if (!DA.GetData(2, ref cellSize)) return;
-            if (!DA.GetData(3, ref range)) return;
+            if (!DA.GetData(2, ref cellSize))
+            {
+                return;
+            }
+
+            if (!DA.GetData(3, ref range))
+            {
+                return;
+            }
+
             DA.GetData(4, ref bulge); // Optional
             DA.GetData(5, ref linear); // Optional
 
@@ -80,7 +91,7 @@ namespace Chromodoris
                 return;
             }
 
-            if (charges.Count != points.Count && charges.Count != 0 && charges.Count != 1) 
+            if (charges.Count != points.Count && charges.Count != 0 && charges.Count != 1)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The number of charges should be 0, 1, or equal to the number of points.");
             }

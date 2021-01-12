@@ -21,11 +21,11 @@
  *
  */
 
-using Rhino.Geometry;
-using KDTree;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using KDTree;
+using Rhino.Geometry;
 
 namespace Chromodoris
 {
@@ -79,10 +79,10 @@ namespace Chromodoris
             if (_box.Plane.ZAxis != Vector3d.ZAxis || _box.Plane.YAxis != Vector3d.YAxis || _box.Plane.XAxis != Vector3d.XAxis)
             {
                 xfm = GetBoxTransform(_box, _xRes, _yRes, _zRes);
-                
+
                 useXfm = true;
             }
-            
+
         }
 
         public VoxelSampler(List<Point3d> points, List<double> values, Box box, int resX, int resY, int resZ, double range, bool bulge, bool linear)
@@ -134,7 +134,7 @@ namespace Chromodoris
                 }
 
             }
-            else  if (_values.Count < _points.Count)
+            else if (_values.Count < _points.Count)
             {
                 for (int i = 0; i < _points.Count; i++)
                 {
@@ -144,7 +144,7 @@ namespace Chromodoris
 
             // make transform from full box to scaled box
             // _box is the big box
-            var _gridbox = new Box(Plane.WorldXY, new Interval(0, _xRes-1), new Interval(0, _yRes-1), new Interval(0, _zRes-1));
+            var _gridbox = new Box(Plane.WorldXY, new Interval(0, _xRes - 1), new Interval(0, _yRes - 1), new Interval(0, _zRes - 1));
             _gridbox.RepositionBasePlane(_gridbox.Center);
             xfmToGrid = BoxToBoxTransform(_box, _gridbox);
             xfmFromGrid = BoxToBoxTransform(_gridbox, _box);
@@ -196,7 +196,7 @@ namespace Chromodoris
 
         public void executeInverse()
         {
-            for (int i=0; i<_points.Count; i++)
+            for (int i = 0; i < _points.Count; i++)
             {
                 AssignPointValue(i);
             }
@@ -218,7 +218,9 @@ namespace Chromodoris
             int[] closeCell = new int[] { (int)ptX.X, (int)ptX.Y, (int)ptX.Z }; // round to find the closest cell
                                                                                 // if the point falls outside the box, skip it
             if (ptX.X < 0 || ptX.X >= _xRes || ptX.Y < 0 || ptX.Y >= _yRes || ptX.Z < 0 || ptX.Z >= _zRes)
+            {
                 return;
+            }
 
             if (assignValueFromScaledPoint(ptX, closeCell, _values[i])) // first (center) value was applied
             {
@@ -257,7 +259,10 @@ namespace Chromodoris
             if (_linear)
             {
                 double len = closestVec.Length;
-                if (len > _range) return false;
+                if (len > _range)
+                {
+                    return false;
+                }
                 // assign a value to this cell
                 assignValueToCell(closeCell[0], closeCell[1], closeCell[2], scalar / (len));
                 return true;
@@ -265,18 +270,22 @@ namespace Chromodoris
             else
             {
                 double len = closestVec.SquareLength;
-                if (len > _rangeSq) return false;
+                if (len > _rangeSq)
+                {
+                    return false;
+                }
+
                 assignValueToCell(closeCell[0], closeCell[1], closeCell[2], scalar / (len * len));
                 return true;
             }
 
-           
+
         }
 
         public List<int[]> GetNeighbouringCells(int cx, int cy, int cz, int indstep)
         {
             List<int[]> neighbours = new List<int[]>();
-           
+
             for (int x = (cx) - indstep; x <= (cx) + indstep; x++)
             {
                 for (int y = (cy) - indstep; y <= (cy) + indstep; y++)
@@ -287,11 +296,11 @@ namespace Chromodoris
                         {
                             if (
                                     x == (cx) - indstep
-                                ||  x == (cx) + indstep
-                                ||  y == (cy) - indstep
-                                ||  y == (cy) + indstep
-                                ||  z == (cz) - indstep
-                                ||  z == (cz) + indstep
+                                || x == (cx) + indstep
+                                || y == (cy) - indstep
+                                || y == (cy) + indstep
+                                || z == (cz) - indstep
+                                || z == (cz) + indstep
                                 )
                             {
                                 neighbours.Add(new int[] { x, y, z });
@@ -307,12 +316,15 @@ namespace Chromodoris
 
         public void assignValueToCell(int cx, int cy, int cz, double value)
         {
-            if (_bulge) Gdata[cx, cy, cz] += (float) value; // increment the value
+            if (_bulge)
+            {
+                Gdata[cx, cy, cz] += (float)value; // increment the value
+            }
             else
             {
                 if (value > Gdata[cx, cy, cz])
                 {
-                    Gdata[cx, cy, cz] = (float) value; // assign the larger value
+                    Gdata[cx, cy, cz] = (float)value; // assign the larger value
                 }
             }
         }
@@ -368,7 +380,7 @@ namespace Chromodoris
 
         public double assignValues(double x, double y, double z)
         {
-            double[] pos = { x,y,z };
+            double[] pos = { x, y, z };
             var data = kdTree.NearestNeighbors(pos, 1024, _rangeSq);
             double biggestCharge = 0;
 

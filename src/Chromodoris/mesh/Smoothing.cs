@@ -23,9 +23,8 @@
 
 using System;
 using System.Collections.Generic;
-using Rhino.Geometry;
 using System.Linq;
-using System.Text;
+using Rhino.Geometry;
 
 namespace Chromodoris.MeshTools
 {
@@ -108,7 +107,7 @@ namespace Chromodoris.MeshTools
                 {
                     avg += topoVertLocations[nv];
                 }
-                avg = avg / (double)nvs.Length;
+                avg = avg / nvs.Length;
                 Vector3d pos = new Vector3d(loc) + (avg - loc) * step;
                 topoVertLocations[v] = new Point3f((float)pos.X, (float)pos.Y, (float)pos.Z);
             }

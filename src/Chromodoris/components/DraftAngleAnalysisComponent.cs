@@ -22,14 +22,10 @@
  */
 
 using System;
-using System.Collections.Generic;
-
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using Chromodoris.MeshTools;
-using System.Linq;
-using Grasshopper.Kernel.Types;
 using System.Drawing;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
 
 namespace Chromodoris
 {
@@ -72,28 +68,50 @@ namespace Chromodoris
             Mesh mesh = null;
             double minDraft = -45;
             double maxDraft = 45;
-            if (!DA.GetData("Minimum Draft", ref minDraft)) return;
-            if (!DA.GetData("Maximum Draft", ref maxDraft)) return;
-            if (!DA.GetData("Mesh", ref mesh)) return;
+            if (!DA.GetData("Minimum Draft", ref minDraft))
+            {
+                return;
+            }
+
+            if (!DA.GetData("Maximum Draft", ref maxDraft))
+            {
+                return;
+            }
+
+            if (!DA.GetData("Mesh", ref mesh))
+            {
+                return;
+            }
 
             mesh.Normals.ComputeNormals();
             mesh.VertexColors.Clear();
-            for (int i=0; i<mesh.Normals.Count; i++)
+            for (int i = 0; i < mesh.Normals.Count; i++)
             {
                 Vector3d norm = mesh.Normals[i];
                 Vector3d refang = new Vector3d(norm.X, norm.Y, 0);
                 refang.Unitize();
                 double ang = Vector3d.VectorAngle(norm, refang);
-                if (norm.Z < 0) ang = -ang;
+                if (norm.Z < 0)
+                {
+                    ang = -ang;
+                }
+
                 double degAng = Rhino.RhinoMath.ToDegrees(ang);
-                if (degAng < minDraft) degAng = minDraft;
-                else if (degAng > maxDraft) degAng = maxDraft;
+                if (degAng < minDraft)
+                {
+                    degAng = minDraft;
+                }
+                else if (degAng > maxDraft)
+                {
+                    degAng = maxDraft;
+                }
+
                 mesh.VertexColors.Add(MapRainbowColor(degAng, minDraft, maxDraft));
             }
             DA.SetData("Mesh", new GH_Mesh(mesh));
         }
 
-        private Color MapRainbowColor( double value, double red_value, double blue_value)
+        private Color MapRainbowColor(double value, double red_value, double blue_value)
         {
             // Convert into a value between 0 and 1023.
             int int_value = (int)(1023 * (value - red_value) /
@@ -151,4 +169,3 @@ namespace Chromodoris
         }
     }
 }
- 

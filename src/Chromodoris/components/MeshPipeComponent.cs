@@ -23,11 +23,10 @@
 
 using System;
 using System.Collections.Generic;
-
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using Grasshopper.Kernel.Types;
 using System.Linq;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
 
 namespace Chromodoris.Components
 {
@@ -63,15 +62,23 @@ namespace Chromodoris.Components
             double radius = 1;
             bool cap = false;
 
-            if (!DA.GetDataList("Polylines", crvs)) return;
+            if (!DA.GetDataList("Polylines", crvs))
+            {
+                return;
+            }
+
             DA.GetData("Cap", ref cap);
             DA.GetData("Number of Sides", ref numSides);
-            if (!DA.GetData("Radius", ref radius)) return;
+            if (!DA.GetData("Radius", ref radius))
+            {
+                return;
+            }
 
             foreach (var c in crvs)
             {
                 Polyline p;
-                if (c.TryGetPolyline(out p)) {
+                if (c.TryGetPolyline(out p))
+                {
                     pls.Add(p);
                 }
                 else
@@ -80,7 +87,7 @@ namespace Chromodoris.Components
                     return;
                 }
             }
-            
+
             DA.SetData("Mesh", new GH_Mesh(GetPiped(pls, numSides, radius, cap)));
         }
 
@@ -91,7 +98,7 @@ namespace Chromodoris.Components
 
             Point3d curr = new Point3d(pt);
             polygon.Add(curr);
-            var xfm = Transform.Rotation(Math.PI * 2 / (double)numSides, Point3d.Origin);
+            var xfm = Transform.Rotation(Math.PI * 2 / numSides, Point3d.Origin);
             for (int i = 0; i < numSides; i++)
             {
                 var pNew = new Point3d(curr);
@@ -103,7 +110,8 @@ namespace Chromodoris.Components
 
             var multimesh = new Mesh[polylines.Count];
 
-            System.Threading.Tasks.Parallel.For(0, polylines.Count, pc => {
+            System.Threading.Tasks.Parallel.For(0, polylines.Count, pc =>
+            {
                 Polyline pl = polylines[pc];
                 List<Plane> frames = new List<Plane>();
                 for (int i = 0; i < pl.Count; i++)
@@ -119,7 +127,7 @@ namespace Chromodoris.Components
                         }
                         else
                         {
-                            Vector3d prevDir = pl[0] - pl[pl.Count-2];
+                            Vector3d prevDir = pl[0] - pl[pl.Count - 2];
                             Vector3d nextDir = pl[1] - pl[0];
                             prevDir.Unitize();
                             nextDir.Unitize();
@@ -174,7 +182,7 @@ namespace Chromodoris.Components
                 }
 
                 int[] firstVerts = lastVerts;
-                
+
                 if (cap && !pl.IsClosed)
                 {
                     capm = Mesh.CreateFromClosedPolyline(poly);
@@ -238,7 +246,8 @@ namespace Chromodoris.Components
 
                         }
                     }
-                } else if (cap)
+                }
+                else if (cap)
                 {
                     capm.Append(Mesh.CreateFromClosedPolyline(poly));
                     mesh.Append(capm);
@@ -255,8 +264,8 @@ namespace Chromodoris.Components
 
             return combined;
         }
-            
-            
+
+
         protected override System.Drawing.Bitmap Icon
         {
             get

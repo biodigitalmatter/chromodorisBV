@@ -33,17 +33,24 @@ namespace Chromodoris
             data = isoData;
         }
 
-        private int clip(int val, int min, int max) {
+        private int clip(int val, int min, int max)
+        {
             if (val < min)
+            {
                 return min;
+            }
+
             if (val > max)
+            {
                 return max;
+            }
+
             return val;
         }
 
         public double getVoxelAt(int index)
         {
-            int xVal=0, yVal=0, zVal=0;
+            int xVal = 0, yVal = 0, zVal = 0;
 
             if (index >= sliceRes)
             {
@@ -58,7 +65,7 @@ namespace Chromodoris
             }
 
             xVal = index;
-            return data[xVal,yVal,zVal];
+            return data[xVal, yVal, zVal];
         }
 
         public double getVoxelAt(int x, int y, int z)

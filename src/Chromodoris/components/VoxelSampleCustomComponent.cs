@@ -26,7 +26,6 @@ using System.Collections.Generic;
 
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using Grasshopper.Kernel.Types;
 
 namespace Chromodoris
 {
@@ -73,13 +72,37 @@ namespace Chromodoris
             bool bulge = false;
             bool linear = true;
 
-            if (!DA.GetDataList("Points", points)) return;
+            if (!DA.GetDataList("Points", points))
+            {
+                return;
+            }
+
             DA.GetDataList("Charges", charges); // Optional
-            if (!DA.GetData("Box", ref box)) return;
-            if (!DA.GetData("X Resolution", ref xr)) return;
-            if (!DA.GetData("Y Resolution", ref yr)) return;
-            if (!DA.GetData("Z Resolution", ref zr)) return;
-            if (!DA.GetData("Effective Range", ref range)) return;
+            if (!DA.GetData("Box", ref box))
+            {
+                return;
+            }
+
+            if (!DA.GetData("X Resolution", ref xr))
+            {
+                return;
+            }
+
+            if (!DA.GetData("Y Resolution", ref yr))
+            {
+                return;
+            }
+
+            if (!DA.GetData("Z Resolution", ref zr))
+            {
+                return;
+            }
+
+            if (!DA.GetData("Effective Range", ref range))
+            {
+                return;
+            }
+
             DA.GetData("Density Sampling", ref bulge); // Optional
             DA.GetData("Linear Sampling", ref linear); // Optional
 
@@ -89,7 +112,7 @@ namespace Chromodoris
                 return;
             }
 
-            if (charges.Count != points.Count && charges.Count != 0 && charges.Count != 1) 
+            if (charges.Count != points.Count && charges.Count != 0 && charges.Count != 1)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "The number of charges should be 0, 1, or equal to the number of points.");
             }

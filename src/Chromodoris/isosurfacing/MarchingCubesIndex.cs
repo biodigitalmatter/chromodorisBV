@@ -4,12 +4,6 @@
 * Released under the Lesser GPL (LGPL 2.1)
 */
 
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace Chromodoris
 {
     public class MarchingCubesIndex

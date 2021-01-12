@@ -22,13 +22,11 @@
  */
 
 using System;
-using System.Collections.Generic;
-
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using Chromodoris.MeshTools;
 using System.Linq;
+using Chromodoris.MeshTools;
+using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
 
 namespace Chromodoris
 {
@@ -80,7 +78,10 @@ namespace Chromodoris
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Mesh mesh = null;
-            if (!DA.GetData("Mesh", ref mesh)) return;
+            if (!DA.GetData("Mesh", ref mesh))
+            {
+                return;
+            }
 
             var c = new CurvatureApproximation(mesh);
 
@@ -114,4 +115,3 @@ namespace Chromodoris
         }
     }
 }
- 
