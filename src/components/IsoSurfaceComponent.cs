@@ -1,4 +1,4 @@
-﻿/*
+/*
  *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
  *     / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
  *    ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
@@ -35,7 +35,7 @@ namespace Chromodoris
         public IsosurfaceComponent()
           : base("Build IsoSurface", "IsoSurface",
               "Constructs a 3D isosurface from voxel data (float[x,y,z]) and a box.",
-              "Chromodoris", "Isosurface")
+              "ChromodorisBV", "Isosurface")
         {
         }
 

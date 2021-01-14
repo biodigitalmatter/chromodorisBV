@@ -1,4 +1,4 @@
-﻿/*
+/*
  *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
  *     / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
  *    ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
@@ -34,7 +34,7 @@ namespace Chromodoris
         public VoxelSampleCustomComponent()
           : base("Sample Voxels (Custom)", "VoxelSample(C)",
               "Construct and sample a voxel grid from a point cloud and optional charges, using a specified box and dimensional data.",
-              "Chromodoris", "Isosurface")
+              "ChromodorisBV", "Isosurface")
         {
         }
 

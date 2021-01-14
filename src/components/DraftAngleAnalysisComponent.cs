@@ -1,4 +1,4 @@
-﻿/*
+/*
  *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
  *     / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
  *    ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
@@ -37,7 +37,7 @@ namespace Chromodoris
         public DraftAngleDisplayComponent()
           : base("Draft Angle", "Draft",
               "Displays the draft angle of a mesh.",
-              "Chromodoris", "Display")
+              "ChromodorisBV", "Display")
         {
         }
 

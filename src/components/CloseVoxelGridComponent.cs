@@ -1,4 +1,4 @@
-﻿/*
+/*
  *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
  *     / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
  *    ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
@@ -33,7 +33,7 @@ namespace Chromodoris
         public CloseVoxelGridComponent()
           : base("Close Voxel Data", "Close",
               "Closes a voxel grid.",
-              "Chromodoris", "Isosurface")
+              "ChromodorisBV", "Isosurface")
         {
         }
 

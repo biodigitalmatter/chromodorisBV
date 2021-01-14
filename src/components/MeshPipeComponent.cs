@@ -1,4 +1,4 @@
-﻿/*
+/*
  *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
  *     / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
  *    ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
@@ -35,7 +35,7 @@ namespace Chromodoris.Components
         public MeshPipeComponent()
           : base("Mesh Pipe", "MPipe",
               "Pipes multiple curves into a single mesh.",
-              "Chromodoris", "Meshing")
+              "ChromodorisBV", "Meshing")
         {
         }
 

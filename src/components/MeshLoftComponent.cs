@@ -1,4 +1,4 @@
-﻿/*
+/*
  *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
  *     / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
  *    ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
@@ -34,7 +34,7 @@ namespace Chromodoris.Components
         public MeshLoftComponent()
           : base("Mesh Loft", "MLoft",
               "Lofts polylines together to create welded meshes, minimizing overhead.",
-              "Chromodoris", "Meshing")
+              "ChromodorisBW", "Meshing")
         {
         }
 

@@ -1,4 +1,4 @@
-﻿/*
+/*
  *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
  *     / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
  *    ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
@@ -38,7 +38,7 @@ namespace Chromodoris
         public CurvatureApproximationComponent()
           : base("Curvature Approximation", "Curvature",
               "Very roughly approximates mesh curvature.",
-              "Chromodoris", "Display")
+              "ChromodorisBV", "Display")
         {
         }
 
