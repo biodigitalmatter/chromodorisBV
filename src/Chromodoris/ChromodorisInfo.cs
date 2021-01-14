@@ -1,10 +1,13 @@
-﻿/*
- *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
+/*
+ *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____
  *     / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
  *    ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
- *     \___)\_)(_/(__\_) \__/ \_)(_/ \__/(____/ \__/(__\_)(__)(____/
+ *     \___)\_)(_/(__\_) \__/ \_)(_/ \__/(____/ \__/(__\_)(__)(____/BV
  *
- *    Copyright Cameron Newnham 2015-2016
+ *    ChromodorisBV is built on Chromodoris
+ *    (https://bitbucket.org/camnewnham/chromodoris) by Cameron Newnham,
+ *    copyright 2015-2016. ChromodorisBV is copyright Anton Tetov Johansson
+ *    2020.
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -27,13 +30,13 @@ using Grasshopper.Kernel;
 
 namespace Chromodoris
 {
-    public class ChromodorisInfo : GH_AssemblyInfo
+    public class ChromodorisBVInfo : GH_AssemblyInfo
     {
         public override string Name
         {
             get
             {
-                return "Chromodoris";
+                return "ChromodorisBV";
             }
         }
         public override Bitmap Icon
@@ -55,7 +58,7 @@ namespace Chromodoris
         {
             get
             {
-                return new Guid("32d9b770-0fb4-4a86-9abb-c721c70408e2");
+                return new Guid("24D9C88E-6A06-4572-9608-C20DDCBBF9AF");
             }
         }
 
@@ -64,7 +67,7 @@ namespace Chromodoris
             get
             {
                 //Return a string identifying you or your company.
-                return "Cameron Newnham";
+                return "Anton Tetov Johansson";
             }
         }
         public override string AuthorContact
@@ -72,7 +75,7 @@ namespace Chromodoris
             get
             {
                 //Return a string representing your preferred contact details.
-                return "cam@camnewnham.com";
+                return "anton@tetov.se";
             }
         }
     }

@@ -1,9 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chromodoris", "Chromodoris\Chromodoris.csproj", "{C5F5D987-3B38-4761-8537-C8F978D31733}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromodorisBV", "Chromodoris\ChromodorisBV.csproj", "{C5F5D987-3B38-4761-8537-C8F978D31733}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{649A1624-EA7C-4652-83BF-EBD46BDB6BF8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,8 +24,8 @@ Global
 		{C5F5D987-3B38-4761-8537-C8F978D31733}.Debug|Any CPU.Build.0 = Debug64|Any CPU
 		{C5F5D987-3B38-4761-8537-C8F978D31733}.Debug|x64.ActiveCfg = Debug64|x64
 		{C5F5D987-3B38-4761-8537-C8F978D31733}.Debug|x64.Build.0 = Debug64|x64
-		{C5F5D987-3B38-4761-8537-C8F978D31733}.Debug64|Any CPU.ActiveCfg = Debug64|Any CPU
-		{C5F5D987-3B38-4761-8537-C8F978D31733}.Debug64|Any CPU.Build.0 = Debug64|Any CPU
+		{C5F5D987-3B38-4761-8537-C8F978D31733}.Debug64|Any CPU.ActiveCfg = Release|Any CPU
+		{C5F5D987-3B38-4761-8537-C8F978D31733}.Debug64|Any CPU.Build.0 = Release|Any CPU
 		{C5F5D987-3B38-4761-8537-C8F978D31733}.Debug64|x64.ActiveCfg = Debug64|x64
 		{C5F5D987-3B38-4761-8537-C8F978D31733}.Debug64|x64.Build.0 = Debug64|x64
 		{C5F5D987-3B38-4761-8537-C8F978D31733}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -30,5 +35,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1F2915B6-269D-4527-A945-0F5A949B0177}
 	EndGlobalSection
 EndGlobal
