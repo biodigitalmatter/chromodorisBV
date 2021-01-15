@@ -35,7 +35,7 @@ namespace Chromodoris
 {
     internal class VoxelSamplerDual
     {
-        public ConcurrentBag<Point3d> _voxelPts;
+        public List<Point3d>[] _voxelPts;
         public Box BBox;
         public float[,,] SampledData;
         private readonly PointCloudVoxelData _ptCloudVoxel1;
@@ -64,10 +64,19 @@ namespace Chromodoris
             _zSpace = (BBox.Z.Max - BBox.Z.Min) / (_zRes - 1);
 
             SampledData = new float[_xRes, _yRes, _zRes];
-            _voxelPts = new ConcurrentBag<Point3d>();
+            _voxelPts = new List<Point3d>[_zRes];
         }
 
-        public List<Point3d> VoxelPts { get => _voxelPts.ToList(); }
+        public List<Point3d> VoxelPts
+        {
+            get
+            {
+                var _newList = new List<Point3d>();
+                foreach (List<Point3d> _list in _voxelPts) { _newList.AddRange(_list); }
+                return _newList;
+            }
+        }
+
         //public Box BBox => _bBox;
 
         //public float[,,] SampledData => _sampledData;
@@ -82,16 +91,17 @@ namespace Chromodoris
 
         private void AssignSection(int z)
         {
+            _voxelPts[z] = new List<Point3d>();
             double zCoord = BBox.Z.Min + z * _zSpace + BBox.Center.Z;
-            for (int y = 0; y < _yRes; y++)
+            for (int x = 0; x < _xRes; x++)
             {
-                double yCoord = BBox.Y.Min + y * _ySpace + BBox.Center.Y;
-                for (int x = 0; x < _xRes; x++)
+                double xCoord = BBox.X.Min + x * _xSpace + BBox.Center.X;
+                for (int y = 0; y < _yRes; y++)
                 {
-                    double xCoord = BBox.X.Min + x * _xSpace + BBox.Center.X;
+                    double yCoord = BBox.Y.Min + y * _ySpace + BBox.Center.Y;
                     int[] voxelRef = { x, y, z };
                     var voxelPt = new Point3d(xCoord, yCoord, zCoord);
-                    _voxelPts.Add(voxelPt);
+                    _voxelPts[z].Add(voxelPt);
                     AssignVoxelValues(voxelRef, voxelPt);
                 }
             }
