@@ -40,7 +40,7 @@ namespace Chromodoris
         public VoxelSampleDual()
           : base("Sample Voxels (Dual)", "VoxelSample(D)",
               "Construct and sample a voxel grid from two point cloud affecting eachover.",
-              "Chromodoris", "Isosurface")
+              "ChromodorisBV", "Isosurface")
         {
         }
 
@@ -66,11 +66,6 @@ namespace Chromodoris
             InXIdx = pManager.AddIntegerParameter("X Resolution", "X", "The number of grid cells in the X-direction.", GH_ParamAccess.item);
             InYIdx = pManager.AddIntegerParameter("Y Resolution", "Y", "The number of grid cells in the Y-direction.", GH_ParamAccess.item);
             InZIdx = pManager.AddIntegerParameter("Z Resolution", "Z", "The number of grid cells in the Z-direction.", GH_ParamAccess.item);
-            InRIdx = pManager.AddNumberParameter("Effective Range", "R", "The maximum search range for voxel sampling.", GH_ParamAccess.item);
-            InDIdx = pManager.AddBooleanParameter("Density Sampling", "D", "Toggle point density affecting the point values", GH_ParamAccess.item, false);
-            InLIdx = pManager.AddBooleanParameter("Linear Sampling", "L", "Toggle falloff from exponential to linear", GH_ParamAccess.item, true);
-            pManager[InLIdx].Optional = true;
-            pManager[InDIdx].Optional = true;
         }
 
         /// <summary>
@@ -83,8 +78,8 @@ namespace Chromodoris
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             OutBIdx = pManager.AddBoxParameter("Box", "B", "The generated box representing voxel grid.", GH_ParamAccess.item);
-            OutD1Idx = pManager.AddGenericParameter("Voxel Data 1", "D1", "Voxel data as float[x,y,z]", GH_ParamAccess.item);
-            OutD2Idx = pManager.AddGenericParameter("Voxel Data 2", "D2", "Voxel data as float[x,y,z]", GH_ParamAccess.item);
+            OutDIdx = pManager.AddGenericParameter("Voxel Data 1", "D", "Voxel data stored in an array.", GH_ParamAccess.item);
+            OutPIdx = pManager.AddPointParameter("Voxel center points", "P", "Voxel center points.", GH_ParamAccess.tree);
         }
 
         /// <summary>
@@ -95,14 +90,10 @@ namespace Chromodoris
         {
             List<Point3d> pointCloud1 = new List<Point3d>();
             List<Point3d> pointCloud2 = new List<Point3d>();
-            List<double> charges = new List<double>();
             int xr = 0;
             int yr = 0;
             int zr = 0;
             Box box = new Box();
-            double range = 0;
-            bool bulge = false;
-            bool linear = true;
 
             if (!DA.GetDataList(InP1Idx, pointCloud1))
             {
@@ -114,7 +105,6 @@ namespace Chromodoris
                 return;
             }
 
-            // DA.GetDataList("Charges", charges); // Optional
             if (!DA.GetData(InBIdx, ref box))
             {
                 return;
@@ -135,32 +125,12 @@ namespace Chromodoris
                 return;
             }
 
-            if (!DA.GetData(InRIdx, ref range))
-            {
-                return;
-            }
-
-            DA.GetData(InDIdx, ref bulge); // Optional
-            DA.GetData(InLIdx, ref linear); // Optional
-
-            if (range <= 0)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Range must be larger than 0.");
-                return;
-            }
-
-            if (charges.Count != 0)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Charges not implemented yet.");
-            }
-
-            var sampler = new VoxelSamplerDual(pointCloud1, pointCloud2, charges, box, xr, yr, zr, range, bulge, linear);
-            sampler.Init();
-            sampler.executeMultiThreaded();
+            VoxelSamplerDual sampler = new VoxelSamplerDual(pointCloud1, pointCloud2, box, xr, yr, zr);
+            sampler.ExecuteMultiThreaded();
 
             _ = DA.SetData(OutBIdx, sampler.BBox);
-            _ = DA.SetData(OutD1Idx, sampler.SampledData1);
-            _ = DA.SetData(OutD2Idx, sampler.SampledData2);
+            _ = DA.SetData(OutDIdx, sampler.SampledData);
+            _ = DA.SetDataList(OutPIdx, sampler.VoxelPts);
         }
 
         /// <summary>

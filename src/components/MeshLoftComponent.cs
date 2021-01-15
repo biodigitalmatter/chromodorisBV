@@ -34,7 +34,7 @@ namespace Chromodoris.Components
         public MeshLoftComponent()
           : base("Mesh Loft", "MLoft",
               "Lofts polylines together to create welded meshes, minimizing overhead.",
-              "ChromodorisBW", "Meshing")
+              "ChromodorisBV", "Meshing")
         {
         }
 
