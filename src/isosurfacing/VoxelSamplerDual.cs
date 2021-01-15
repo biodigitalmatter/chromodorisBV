@@ -64,14 +64,14 @@ namespace Chromodoris
             _zSpace = (BBox.Z.Max - BBox.Z.Min) / (_zRes - 1);
 
             SampledData = new float[_xRes, _yRes, _zRes];
-            _voxelPts = new List<Point3d>[_zRes];
+            _voxelPts = new List<Point3d>[_xRes];
         }
 
         public List<Point3d> VoxelPts
         {
             get
             {
-                var _newList = new List<Point3d>();
+                List<Point3d> _newList = new List<Point3d>();
                 foreach (List<Point3d> _list in _voxelPts) { _newList.AddRange(_list); }
                 return _newList;
             }
@@ -86,26 +86,29 @@ namespace Chromodoris
         public void ExecuteMultiThreaded()
         {
             var pLel = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
-            System.Threading.Tasks.Parallel.ForEach(Enumerable.Range(0, _zRes), pLel, z => AssignSection(z));
+            System.Threading.Tasks.Parallel.ForEach(Enumerable.Range(0, _xRes), pLel, x => AssignSection(x));
         }
 
-        private void AssignSection(int z)
+        private void AssignSection(int xIdx)
         {
-            _voxelPts[z] = new List<Point3d>();
-            double zCoord = BBox.Z.Min + z * _zSpace + BBox.Center.Z;
-            for (int x = 0; x < _xRes; x++)
+            // List specific to xIdx slice to avoid race conditions
+            _voxelPts[xIdx] = new List<Point3d>();
+
+            double xCoord = BBox.X.Min + xIdx * _xSpace + BBox.Center.X;
+            for (int yIdx = 0; yIdx < _yRes; yIdx++)
             {
-                double xCoord = BBox.X.Min + x * _xSpace + BBox.Center.X;
-                for (int y = 0; y < _yRes; y++)
+                double yCoord = BBox.Y.Min + yIdx * _ySpace + BBox.Center.Y;
+                for (int zIdx = 0; zIdx < _zRes; zIdx++)
                 {
-                    double yCoord = BBox.Y.Min + y * _ySpace + BBox.Center.Y;
-                    int[] voxelRef = { x, y, z };
+                    double zCoord = BBox.Z.Min + zIdx * _zSpace + BBox.Center.Z;
+                    int[] voxelRef = { xIdx, yIdx, zIdx };
                     var voxelPt = new Point3d(xCoord, yCoord, zCoord);
-                    _voxelPts[z].Add(voxelPt);
+                    _voxelPts[xIdx].Add(voxelPt);  
                     AssignVoxelValues(voxelRef, voxelPt);
                 }
             }
         }
+
 
         private void AssignVoxelValues(int[] voxelRef, Point3d voxelPt)
         {
