@@ -1,0 +1,41 @@
+name: Build and release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+  pull_requests:
+    branches:
+      - main
+
+jobs:
+  build_release:
+    name: Build and release
+
+    runs-on: windows-latest
+
+    steps:
+      -
+        name: Checkout repo
+        uses: actions/checkout@v2
+      -
+        name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      -
+        name: Restore nuget packages
+        run: msbuild -target:restore
+      -
+        name: Build solution
+        run: msbuild chromodorisBV.sln /p:Configuration=Release
+
+      -
+        name: Create release
+        if: startsWith(github.ref, 'refs/tags')
+        using: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: artifacts/dist/*
