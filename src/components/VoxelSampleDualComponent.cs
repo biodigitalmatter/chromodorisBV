@@ -54,9 +54,6 @@ namespace Chromodoris
         int InXIdx;
         int InYIdx;
         int InZIdx;
-        int InRIdx;
-        int InDIdx;
-        int InLIdx;
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
@@ -73,8 +70,8 @@ namespace Chromodoris
         /// </summary>
 
         int OutBIdx;
-        int OutD1Idx;
-        int OutD2Idx;
+        int OutDIdx;
+        int OutPIdx;
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             OutBIdx = pManager.AddBoxParameter("Box", "B", "The generated box representing voxel grid.", GH_ParamAccess.item);
