@@ -140,7 +140,7 @@ move "$(TargetDir)dist\$(TargetFileName)" "$(TargetDir)dist\$(ProjectName).gha"<
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>rmdir /S /Q "$(OutDir)\dist"
-mkdir "$(OutDir)\dist"</PreBuildEvent>
+    <PreBuildEvent>rmdir /S /Q "$(OutDir)dist"
+mkdir "$(OutDir)dist"</PreBuildEvent>
   </PropertyGroup>
 </Project>
