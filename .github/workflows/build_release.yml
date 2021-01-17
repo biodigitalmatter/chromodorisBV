@@ -25,7 +25,7 @@ jobs:
         name: Build solution
         run: msbuild chromodorisBV.sln /p:Configuration=Release
 
-     -
+      -
         name: Check Tag
         id: check-tag
         run: |
