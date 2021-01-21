@@ -75,8 +75,8 @@ namespace Chromodoris
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             OutBIdx = pManager.AddBoxParameter("Box", "B", "The generated box representing voxel grid.", GH_ParamAccess.item);
-            OutDIdx = pManager.AddGenericParameter("Voxel Data 1", "D", "Voxel data stored in an array.", GH_ParamAccess.item);
-            OutPIdx = pManager.AddPointParameter("Voxel center points", "P", "Voxel center points.", GH_ParamAccess.tree);
+            OutDIdx = pManager.AddGenericParameter("Voxel Data 1", "D", "Voxel data stored in an array.", GH_ParamAccess.list);
+            OutPIdx = pManager.AddPointParameter("Voxel center points", "P", "Voxel center points.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace Chromodoris
             sampler.ExecuteMultiThreaded();
 
             _ = DA.SetData(OutBIdx, sampler.BBox);
-            _ = DA.SetData(OutDIdx, sampler.SampledData);
+            _ = DA.SetDataList(OutDIdx, sampler.SampledValuesList);
             _ = DA.SetDataList(OutPIdx, sampler.VoxelPts);
         }
 

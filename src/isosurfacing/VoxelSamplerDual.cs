@@ -37,7 +37,7 @@ namespace Chromodoris
     {
         public List<Point3d>[] _voxelPts;
         public Box BBox;
-        public float[,,] SampledData;
+        public List<float>[] SampledData;
         private readonly PointCloudVoxelData _ptCloudVoxel1;
         private readonly PointCloudVoxelData _ptCloudVoxel2;
         private readonly int _xRes;
@@ -63,7 +63,7 @@ namespace Chromodoris
             _ySpace = (BBox.Y.Max - BBox.Y.Min) / (_yRes - 1);
             _zSpace = (BBox.Z.Max - BBox.Z.Min) / (_zRes - 1);
 
-            SampledData = new float[_xRes, _yRes, _zRes];
+            SampledData = new List<float>[_xRes];
             _voxelPts = new List<Point3d>[_xRes];
         }
 
@@ -74,6 +74,16 @@ namespace Chromodoris
                 List<Point3d> _newList = new List<Point3d>();
                 foreach (List<Point3d> _list in _voxelPts) { _newList.AddRange(_list); }
                 return _newList;
+            }
+        }
+
+        public List<float> SampledValuesList
+        {
+            get
+            {
+                List<float> newList = new List<float>();
+                foreach (List<float> list in SampledData) { newList.AddRange(list); }
+                return newList;
             }
         }
 
@@ -92,6 +102,7 @@ namespace Chromodoris
         private void AssignSection(int xIdx)
         {
             // List specific to xIdx slice to avoid race conditions
+            SampledData[xIdx] = new List<float>();
             _voxelPts[xIdx] = new List<Point3d>();
 
             double xCoord = BBox.X.Min + xIdx * _xSpace + BBox.Center.X;
@@ -118,7 +129,7 @@ namespace Chromodoris
             double sumDist = voxelDist1 + voxelDist2;
             double val = voxelDist1 / sumDist;
 
-            SampledData.SetValue((float)val, voxelRef);
+            SampledData[voxelRef[0]].Add((float)val);
         }
 
         private class PointCloudVoxelData
