@@ -25,7 +25,6 @@
  */
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using KDTree;
@@ -35,9 +34,7 @@ namespace Chromodoris
 {
     internal class VoxelSamplerDual
     {
-        public List<Point3d>[] _voxelPts;
-        public Box BBox;
-        public float[,,] SampledData;
+        private readonly Box _bBox;
         private readonly PointCloudVoxelData _ptCloudVoxel1;
         private readonly PointCloudVoxelData _ptCloudVoxel2;
         private readonly int _xRes;
@@ -46,14 +43,16 @@ namespace Chromodoris
         private readonly double _ySpace;
         private readonly int _zRes;
         private readonly double _zSpace;
+        private List<Point3d>[] _voxelPts;
+        private List<float>[] _voxelValues;
 
         public VoxelSamplerDual(List<Point3d> pointCloud1, List<Point3d> pointCloud2, Box box, int resX, int resY, int resZ)
         {
             _ptCloudVoxel1 = new PointCloudVoxelData(pointCloud1);
             _ptCloudVoxel2 = new PointCloudVoxelData(pointCloud2);
 
-            BBox = box;
-            BBox.RepositionBasePlane(box.Center);
+            _bBox = box;
+            _bBox.RepositionBasePlane(box.Center);
 
             _xRes = resX;
             _yRes = resY;
@@ -63,25 +62,15 @@ namespace Chromodoris
             _ySpace = (BBox.Y.Max - BBox.Y.Min) / (_yRes - 1);
             _zSpace = (BBox.Z.Max - BBox.Z.Min) / (_zRes - 1);
 
-            SampledData = new float[_xRes, _yRes, _zRes];
+            _voxelValues = new List<float>[_xRes];
             _voxelPts = new List<Point3d>[_xRes];
         }
 
-        public List<Point3d> VoxelPts
-        {
-            get
-            {
-                List<Point3d> _newList = new List<Point3d>();
-                foreach (List<Point3d> _list in _voxelPts) { _newList.AddRange(_list); }
-                return _newList;
-            }
-        }
+        public Box BBox { get => _bBox; }
 
-        //public Box BBox => _bBox;
+        public List<Point3d> VoxelPtsList { get { return FlattenArrayOfList(_voxelPts); } }
 
-        //public float[,,] SampledData => _sampledData;
-
-        //public List<Point3d> VoxelPts => _voxelPts;
+        public List<float> VoxelValuesList { get { return FlattenArrayOfList(_voxelValues); } }
 
         public void ExecuteMultiThreaded()
         {
@@ -89,9 +78,20 @@ namespace Chromodoris
             System.Threading.Tasks.Parallel.ForEach(Enumerable.Range(0, _xRes), pLel, x => AssignSection(x));
         }
 
+        private static List<T> FlattenArrayOfList<T>(IList<T>[] array)
+        {
+            List<T> newList = new List<T>();
+            foreach (List<T> list in array)
+            {
+                newList.AddRange(list);
+            }
+
+            return newList;
+        }
         private void AssignSection(int xIdx)
         {
             // List specific to xIdx slice to avoid race conditions
+            _voxelValues[xIdx] = new List<float>();
             _voxelPts[xIdx] = new List<Point3d>();
 
             double xCoord = BBox.X.Min + xIdx * _xSpace + BBox.Center.X;
@@ -101,16 +101,17 @@ namespace Chromodoris
                 for (int zIdx = 0; zIdx < _zRes; zIdx++)
                 {
                     double zCoord = BBox.Z.Min + zIdx * _zSpace + BBox.Center.Z;
-                    int[] voxelRef = { xIdx, yIdx, zIdx };
+
                     var voxelPt = new Point3d(xCoord, yCoord, zCoord);
-                    _voxelPts[xIdx].Add(voxelPt);  
-                    AssignVoxelValues(voxelRef, voxelPt);
+                    _voxelPts[xIdx].Add(voxelPt);
+
+                    float val = GetVoxelValue(voxelPt);
+                    _voxelValues[xIdx].Add(val);
                 }
             }
         }
 
-
-        private void AssignVoxelValues(int[] voxelRef, Point3d voxelPt)
+        private float GetVoxelValue(Point3d voxelPt)
         {
             double voxelDist1 = _ptCloudVoxel1.GetClosestPtDistance(voxelPt);
             double voxelDist2 = _ptCloudVoxel2.GetClosestPtDistance(voxelPt);
@@ -118,7 +119,7 @@ namespace Chromodoris
             double sumDist = voxelDist1 + voxelDist2;
             double val = voxelDist1 / sumDist;
 
-            SampledData.SetValue((float)val, voxelRef);
+            return (float)val;
         }
 
         private class PointCloudVoxelData
