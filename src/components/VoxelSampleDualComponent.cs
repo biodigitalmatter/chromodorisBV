@@ -126,8 +126,8 @@ namespace Chromodoris
             sampler.ExecuteMultiThreaded();
 
             _ = DA.SetData(OutBIdx, sampler.BBox);
-            _ = DA.SetDataList(OutDIdx, sampler.SampledValuesList);
-            _ = DA.SetDataList(OutPIdx, sampler.VoxelPts);
+            _ = DA.SetDataList(OutDIdx, sampler.VoxelValuesList);
+            _ = DA.SetDataList(OutPIdx, sampler.VoxelPtsList);
         }
 
         /// <summary>
