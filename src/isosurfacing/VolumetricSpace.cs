@@ -1,10 +1,11 @@
-﻿/*
+/*
 * This algorithm is based on Karsten Schmidt's 'toxiclibs' isosurfacer in Java
 * https://bitbucket.org/postspectacular/toxiclibs
 * Released under the Lesser GPL (LGPL 2.1)
 */
 
 using System;
+using System.Collections.Generic;
 
 namespace Chromodoris
 {
@@ -18,7 +19,9 @@ namespace Chromodoris
 
         public int numCells;
 
-        private float[,,] data;
+        private float[,,] _isoData;
+
+        public float[,,] IsoData { get => _isoData; }
 
         public VolumetricSpace(float[,,] isoData)
         {
@@ -30,7 +33,46 @@ namespace Chromodoris
             resZ1 = resZ - 1;
             sliceRes = resX * resY;
             numCells = sliceRes * resZ;
-            data = isoData;
+            _isoData = isoData;
+        }
+
+        public VolumetricSpace(List<float> isoDataAsList, int resX, int resY, int resZ)
+        {
+            this.resX = resX;
+            this.resY = resY;
+            this.resZ = resZ;
+
+            resX1 = resX - 1;
+            resY1 = resY - 1;
+            resZ1 = resZ - 1;
+            sliceRes = resX * resY;
+            numCells = sliceRes * resZ;
+            _isoData = ArrayFromList(isoDataAsList);
+        }
+
+        private float[,,] ArrayFromList(List<float> isoDataAsList)
+        {
+            float[,,] isoData = new float[resX, resY, resZ];
+
+            int listIdx = 0;
+
+            for (int xIdx = 0; xIdx < resX; xIdx++)
+            {
+                for (int yIdx = 0; yIdx < resY; yIdx++)
+                {
+                    for (int zIdx = 0; zIdx < resZ; zIdx++)
+                    {
+
+                        isoData[xIdx, yIdx, zIdx] = isoDataAsList[listIdx];
+
+                        listIdx++;
+
+                    }
+
+                }
+            }
+
+            return isoData;
         }
 
         private int clip(int val, int min, int max)
@@ -65,12 +107,12 @@ namespace Chromodoris
             }
 
             xVal = index;
-            return data[xVal, yVal, zVal];
+            return _isoData[xVal, yVal, zVal];
         }
 
         public double getVoxelAt(int x, int y, int z)
         {
-            return data[x, y, z];
+            return _isoData[x, y, z];
         }
     }
 }
