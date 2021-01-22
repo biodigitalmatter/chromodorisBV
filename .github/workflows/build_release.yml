@@ -28,6 +28,13 @@ jobs:
         run: msbuild chromodorisBV.sln /p:Configuration=Release
 
       -
+        name: Upload gha
+        uses: actions/upload-artifact@v2
+        with:
+          name: chromodorisBV_${{ github.GITHUB_SHA }}.gha
+          path: artifacts/dist/chromodorisBV.gha
+
+      -
         name: Check Tag
         id: check-tag
         shell: bash
