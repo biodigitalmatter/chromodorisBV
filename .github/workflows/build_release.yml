@@ -39,7 +39,7 @@ jobs:
         name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: chromodorisBV_${{ SEMVER }}
+          name: chromodorisBV_${{ env.SEMVER }}
           path: artifacts/dist/*
 
       -
@@ -57,7 +57,7 @@ jobs:
         if: steps.check-tag.outputs.match == 'true'
         run: >
           7z a -tzip
-          artifacts/dist/ChromodorisBV_${{ SEMVER }}.zip
+          artifacts/dist/ChromodorisBV_$SEMVER.zip
           artifacts/dist/*
 
       -
