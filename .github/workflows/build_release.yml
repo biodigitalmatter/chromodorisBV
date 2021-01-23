@@ -38,7 +38,6 @@ jobs:
       -
         name: Upload artifacts
         uses: actions/upload-artifact@v2
-        if: steps.check-tag.outputs.match != 'true'
         with:
           name: chromodorisBV_${{ env.SEMVER }}
           path: artifacts/dist/*
@@ -63,7 +62,7 @@ jobs:
 
       -
         name: Create release on semver tag
-        needs: create-zip
+        if: steps.check-tag.outputs.match == 'true'
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
