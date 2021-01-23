@@ -19,6 +19,9 @@ jobs:
         name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
 
+      - name: Install GitVersion CLI tool for upload artifact steps
+        run: choco --yes install GitVersion
+
       -
         name: Restore nuget packages
         run: msbuild -target:restore
@@ -28,11 +31,17 @@ jobs:
         run: msbuild chromodorisBV.sln /p:Configuration=Release
 
       -
-        name: Upload gha
+        id: get-semver
+        name: Get SemVer version
+        run: echo "SEMVER=$(gitversion | jq .SemVer)" >> $GITHUB_ENV
+
+      -
+        name: Upload artifacts
         uses: actions/upload-artifact@v2
+        if: steps.check-tag.outputs.match != 'true'
         with:
-          name: chromodorisBV_${{ github.sha }}.gha
-          path: artifacts/dist/chromodorisBV.gha
+          name: chromodorisBV_${{ env.SEMVER }}
+          path: artifacts/dist/*
 
       -
         name: Check Tag
@@ -43,9 +52,18 @@ jobs:
               echo ::set-output name=match::true
           fi
 
-      - 
-        name: Create release on semver tag
+      -
+        name: Create release-zip
+        id: create-zip
         if: steps.check-tag.outputs.match == 'true'
+        run: >
+          7z a -tzip
+          artifacts/dist/ChromodorisBV_${{ env.SEMVER }}.zip
+          artifacts/dist/*
+
+      -
+        name: Create release on semver tag
+        needs: create-zip
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
