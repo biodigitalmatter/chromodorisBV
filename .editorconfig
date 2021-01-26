@@ -12,5 +12,11 @@ insert_final_newline = false
 [*.{yaml,yml,toml}]
 indent_size = 2
 
-# IDE0008: Use explicit type
-csharp_style_var_when_type_is_apparent = true:silent
+[*.cs]
+
+# IDE0007: Use 'var' instead of explicit type
+csharp_style_var_for_built_in_types = true
+csharp_style_var_when_type_is_apparent = true
+
+# IDE0040: Add accessibility modifiers
+dotnet_style_require_accessibility_modifiers = omit_if_default
