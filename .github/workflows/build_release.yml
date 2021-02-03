@@ -57,8 +57,8 @@ jobs:
         if: steps.check-tag.outputs.match == 'true'
         run: >
           7z a -tzip
-          artifacts/dist/ChromodorisBV_$Env:SEMVER.zip
-          artifacts/dist/*
+          artifacts\dist\ChromodorisBV_$Env:SEMVER.zip
+          .\artifacts\dist\*
 
       -
         name: Create release on semver tag
