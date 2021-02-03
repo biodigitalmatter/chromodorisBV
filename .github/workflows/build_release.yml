@@ -33,7 +33,7 @@ jobs:
       -
         id: get-semver
         name: Get SemVer version
-        run: echo "::set-output name=semver::$(gitversion | jq .SemVer)"
+        run: echo ::set-output name=semver::$(gitversion | jq .SemVer)
 
       -
         name: Upload artifacts
