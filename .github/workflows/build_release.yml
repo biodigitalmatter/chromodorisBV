@@ -23,12 +23,8 @@ jobs:
         run: choco install GitVersion
 
       -
-        name: Restore nuget packages
-        run: msbuild -target:restore
-
-      -
         name: Build solution
-        run: msbuild chromodorisBV.sln /p:Configuration=Release
+        run: msbuild chromodorisBV.sln /p:Configuration=Release -restore
 
       -
         id: get-semver
