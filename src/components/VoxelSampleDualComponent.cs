@@ -85,12 +85,12 @@ namespace Chromodoris
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            List<Point3d> pointCloud1 = new List<Point3d>();
-            List<Point3d> pointCloud2 = new List<Point3d>();
-            int xr = 0;
-            int yr = 0;
-            int zr = 0;
-            Box box = new Box();
+            var pointCloud1 = new List<Point3d>();
+            var pointCloud2 = new List<Point3d>();
+            var xr = 0;
+            var yr = 0;
+            var zr = 0;
+            var box = new Box();
 
             if (!DA.GetDataList(InP1Idx, pointCloud1))
             {
@@ -122,7 +122,7 @@ namespace Chromodoris
                 return;
             }
 
-            VoxelSamplerDual sampler = new VoxelSamplerDual(pointCloud1, pointCloud2, box, xr, yr, zr);
+            var sampler = new VoxelSamplerDual(pointCloud1, pointCloud2, box, xr, yr, zr);
             sampler.ExecuteMultiThreaded();
 
             _ = DA.SetData(OutBIdx, sampler.BBox);
