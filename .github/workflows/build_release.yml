@@ -20,7 +20,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
 
       - name: Install GitVersion CLI tool for upload artifact steps
-        run: choco --yes install GitVersion
+        run: choco install GitVersion
 
       -
         name: Restore nuget packages
@@ -33,12 +33,11 @@ jobs:
       -
         id: get-semver
         name: Get SemVer version
-        run: echo "SEMVER=$(gitversion | jq .SemVer)" >> $GITHUB_ENV
+        run: echo SEMVER=$(gitversion | jq --raw-output .SemVer) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       -
         name: Upload artifacts
         uses: actions/upload-artifact@v2
-        if: steps.check-tag.outputs.match != 'true'
         with:
           name: chromodorisBV_${{ env.SEMVER }}
           path: artifacts/dist/*
@@ -58,12 +57,12 @@ jobs:
         if: steps.check-tag.outputs.match == 'true'
         run: >
           7z a -tzip
-          artifacts/dist/ChromodorisBV_${{ env.SEMVER }}.zip
+          artifacts/dist/ChromodorisBV_$Env:SEMVER.zip
           artifacts/dist/*
 
       -
         name: Create release on semver tag
-        needs: create-zip
+        if: steps.check-tag.outputs.match == 'true'
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
