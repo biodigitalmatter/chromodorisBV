@@ -1,4 +1,4 @@
-﻿/*
+/*
  *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
  *     / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
  *    ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
@@ -51,7 +51,7 @@ namespace Chromodoris
 
         public Transform xfmToGrid;
         public Transform xfmFromGrid;
-        public Transform scaleInv;
+        // public Transform scaleInv;
         public bool useXfm = false;
 
 
