@@ -33,13 +33,13 @@ jobs:
       -
         id: get-semver
         name: Get SemVer version
-        run: echo "SEMVER=$(gitversion | jq .SemVer)" >> $GITHUB_ENV
+        run: echo "::set-output name=semver::$(gitversion | jq .SemVer)"
 
       -
         name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: chromodorisBV_${{ env.SEMVER }}
+          name: chromodorisBV_${{ steps.get-semver.outputs.semver }}
           path: artifacts/dist/*
 
       -
@@ -57,7 +57,7 @@ jobs:
         if: steps.check-tag.outputs.match == 'true'
         run: >
           7z a -tzip
-          artifacts/dist/ChromodorisBV_$SEMVER.zip
+          artifacts/dist/ChromodorisBV_${{ steps.get-semver.outputs.semver }}.zip
           artifacts/dist/*
 
       -
