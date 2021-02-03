@@ -1,10 +1,13 @@
 /*
- *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
+ *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____
  *     / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
  *    ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
- *     \___)\_)(_/(__\_) \__/ \_)(_/ \__/(____/ \__/(__\_)(__)(____/
+ *     \___)\_)(_/(__\_) \__/ \_)(_/ \__/(____/ \__/(__\_)(__)(____/BV
  *
- *    Copyright Cameron Newnham 2015-2016
+ *    ChromodorisBV is built on Chromodoris
+ *    (https://bitbucket.org/camnewnham/chromodoris) by Cameron Newnham,
+ *    copyright 2015-2016. ChromodorisBV is copyright Anton Tetov Johansson
+ *    2020.
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -77,13 +80,14 @@ namespace Chromodoris
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            Box box = new Box();
+            var box = new Box();
             double isovalue = 0;
-            List<double> voxelData = new List<double>();
+            var voxelData = new List<double>();
 
-            int resX = 0;
-            int resY = 0;
-            int resZ = 0;
+            var resX = 0;
+            var resY = 0;
+            var resZ = 0;
+
             if (!DA.GetData(InBIdx, ref box))
             {
                 return;
@@ -109,20 +113,14 @@ namespace Chromodoris
             {
                 return;
             }
-            //DA.GetData(3, ref merge);
+            var floatVoxelData = voxelData.Select<double, float>(x => (float)x).ToList();
 
-            List<float> floatVoxelData = voxelData.Select<double, float>(x => (float)x).ToList();
-
-            //List<float> floatVoxelData = voxelData.OfType<float>(); 
-            
-
-
-            VolumetricSpace vs = new VolumetricSpace((List<float>)floatVoxelData, resX, resY, resZ);
-            HashIsoSurface isosurface = new HashIsoSurface(vs);
-            Mesh mesh = new Mesh();
+            var vs = new VolumetricSpace((List<float>)floatVoxelData, resX, resY, resZ);
+            var isosurface = new HashIsoSurface(vs);
+            var mesh = new Mesh();
 
             isosurface.computeSurfaceMesh(isovalue, ref mesh);
-            transformMesh(mesh, box, vs.IsoData);
+            TransformMesh(mesh, box, vs.IsoData);
             DA.SetData(OutMIdx, mesh);
 
             voxelData = null;
@@ -152,7 +150,7 @@ namespace Chromodoris
             get { return new Guid("{845E601C-7FA3-476D-B4A6-8AF2331B40E8}"); }
         }
 
-        public void transformMesh(Rhino.Geometry.Mesh mesh, Box _box, float[,,] data)
+        public void TransformMesh(Rhino.Geometry.Mesh mesh, Box _box, float[,,] data)
         {
 
 
@@ -161,10 +159,10 @@ namespace Chromodoris
             int z = data.GetLength(2) - 1;
 
 
-            Box gridBox = new Box(Plane.WorldXY, new Interval(0, x), new Interval(0, y), new Interval(0, z));
+            var gridBox = new Box(Plane.WorldXY, new Interval(0, x), new Interval(0, y), new Interval(0, z));
             gridBox.RepositionBasePlane(gridBox.Center);
 
-            var trans = Transform.PlaneToPlane(gridBox.Plane, _box.Plane);
+            Transform trans = Transform.PlaneToPlane(gridBox.Plane, _box.Plane);
             trans = trans * Transform.Scale(gridBox.Plane, _box.X.Length / gridBox.X.Length, _box.Y.Length / gridBox.Y.Length, _box.Z.Length / gridBox.Z.Length);
 
             mesh.Transform(trans);
