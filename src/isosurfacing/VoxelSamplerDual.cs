@@ -42,7 +42,6 @@ namespace Chromodoris
         private readonly bool _zyx;
         private readonly int _nVoxels;
         private readonly List<DimensionValues> _outputOrderedDimVals;
-        private readonly List<VoxelData> _voxelList;
         #endregion fields
 
         #region constructors
@@ -126,50 +125,50 @@ namespace Chromodoris
 
         }
 
-        private void AssignSection(int primaryDimIdx)
-        {
+        //private void AssignSection(int primaryDimIdx)
+        //{
 
-            double getCoord(int idx, DimensionValues dimension)
-            {
-                return dimension.MinCoord + idx * dimension.StepSize; // + dimension.OffsetSize;
-            }
+        //    double getCoord(int idx, DimensionValues dimension)
+        //    {
+        //        return dimension.MinCoord + idx * dimension.StepSize; // + dimension.OffsetSize;
+        //    }
 
-            // Lists specific to slice to avoid race conditions
-            _voxelValues[primaryDimIdx] = new List<float>();
-            _voxelPts[primaryDimIdx] = new List<Point3d>();
+        //    // Lists specific to slice to avoid race conditions
+        //    _voxelValues[primaryDimIdx] = new List<float>();
+        //    _voxelPts[primaryDimIdx] = new List<Point3d>();
 
-            // Initialize once
-            Point3d voxelPt;
+        //    // Initialize once
+        //    Point3d voxelPt;
 
-            // Initialize with values so they can be overwritten
-            var coord = new List<double> { 0, 0, 0 };
+        //    // Initialize with values so they can be overwritten
+        //    var coord = new List<double> { 0, 0, 0 };
 
-            coord[0] = getCoord(primaryDimIdx, _outputOrderedDimVals[0]);
-            for (int secondaryDimIdx = 0; secondaryDimIdx < _outputOrderedDimVals[1].NVoxels; secondaryDimIdx++)
-            {
-                coord[1] = getCoord(secondaryDimIdx, _outputOrderedDimVals[1]);
-                for (int tertiaryDimIdx = 0; tertiaryDimIdx < _outputOrderedDimVals[2].NVoxels; tertiaryDimIdx++)
-                {
-                    coord[2] = getCoord(tertiaryDimIdx, _outputOrderedDimVals[2]);
+        //    coord[0] = getCoord(primaryDimIdx, _outputOrderedDimVals[0]);
+        //    for (int secondaryDimIdx = 0; secondaryDimIdx < _outputOrderedDimVals[1].NVoxels; secondaryDimIdx++)
+        //    {
+        //        coord[1] = getCoord(secondaryDimIdx, _outputOrderedDimVals[1]);
+        //        for (int tertiaryDimIdx = 0; tertiaryDimIdx < _outputOrderedDimVals[2].NVoxels; tertiaryDimIdx++)
+        //        {
+        //            coord[2] = getCoord(tertiaryDimIdx, _outputOrderedDimVals[2]);
 
-                    // Here the order has to be xyz
-                    if (!_zyx)
-                    {
-                        voxelPt = new Point3d(coord[0], coord[1], coord[2]);
-                    }
-                    else
-                    {
-                        voxelPt = new Point3d(coord[2], coord[1], coord[0]);
-                    }
+        //            // Here the order has to be xyz
+        //            if (!_zyx)
+        //            {
+        //                voxelPt = new Point3d(coord[0], coord[1], coord[2]);
+        //            }
+        //            else
+        //            {
+        //                voxelPt = new Point3d(coord[2], coord[1], coord[0]);
+        //            }
 
-                    _voxelPts[primaryDimIdx].Add(voxelPt);
+        //            _voxelPts[primaryDimIdx].Add(voxelPt);
 
-                    float val = GetVoxelValue(voxelPt);
-                    _voxelValues[primaryDimIdx].Add(val);
+        //            float val = GetVoxelValue(voxelPt);
+        //            _voxelValues[primaryDimIdx].Add(val);
 
-                }
-            }
-        }
+        //        }
+        //    }
+        //}
 
         private float GetVoxelValue(Point3d voxelPt)
         {
