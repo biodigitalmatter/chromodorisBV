@@ -35,7 +35,6 @@ namespace Chromodoris
     internal class VoxelSamplerDual
     {
         #region fields
-        private readonly Box _bBox;
         private readonly PointCloudVoxelData _ptCloudVoxel1;
         private readonly PointCloudVoxelData _ptCloudVoxel2;
         private readonly List<Point3d>[] _voxelPts;
@@ -50,8 +49,8 @@ namespace Chromodoris
             _ptCloudVoxel1 = new PointCloudVoxelData(pointCloud1);
             _ptCloudVoxel2 = new PointCloudVoxelData(pointCloud2);
 
-            _bBox = box;
-            _bBox.RepositionBasePlane(box.Center);
+            BBox = box;
+            // _bBox.RepositionBasePlane(box.Center);
 
             DimensionValues XVals;
             DimensionValues YVals;
@@ -69,10 +68,6 @@ namespace Chromodoris
             YVals.StepSize = (BBox.Y.Max - BBox.Y.Min) / (resY - 1);
             ZVals.StepSize = (BBox.Z.Max - BBox.Z.Min) / (resZ - 1);
 
-            XVals.OffsetSize = BBox.Center.X;
-            YVals.OffsetSize = BBox.Center.Y;
-            ZVals.OffsetSize = BBox.Center.Z;
-
             _outputOrderedDimVals = new List<DimensionValues> { XVals, YVals, ZVals };
             if (zyx)
             {
@@ -88,7 +83,7 @@ namespace Chromodoris
         #endregion constructors
 
         #region properties
-        internal Box BBox { get => _bBox; }
+        internal Box BBox { get; }
         internal List<Point3d> VoxelPtsList { get { return FlattenArrayOfList(_voxelPts); } }
 
         internal List<float> VoxelValuesList { get { return FlattenArrayOfList(_voxelValues); } }
@@ -117,12 +112,15 @@ namespace Chromodoris
 
             double getCoord(int idx, DimensionValues dimension)
             {
-                return dimension.MinCoord + idx * dimension.StepSize + dimension.OffsetSize;
+                return dimension.MinCoord + idx * dimension.StepSize; // + dimension.OffsetSize;
             }
 
             // Lists specific to slice to avoid race conditions
             _voxelValues[primaryDimIdx] = new List<float>();
             _voxelPts[primaryDimIdx] = new List<Point3d>();
+
+            // Initialize once
+            Point3d voxelPt;
 
             // Initialize with values so they can be overwritten
             var coord = new List<double> { 0, 0, 0 };
@@ -135,18 +133,20 @@ namespace Chromodoris
                 {
                     coord[2] = getCoord(tertiaryDimIdx, _outputOrderedDimVals[2]);
 
-                    if (_zyx)
+                    // Here the order has to be xyz
+                    if (!_zyx)
                     {
-                        coord.Reverse();
+                        voxelPt = new Point3d(coord[0], coord[1], coord[2]);
+                    }
+                    else
+                    {
+                        voxelPt = new Point3d(coord[2], coord[1], coord[0]);
                     }
 
-                    // Here the order has to be xyz
-                    Point3d voxelPt = new Point3d(coord[0], coord[1], coord[2]);
                     _voxelPts[primaryDimIdx].Add(voxelPt);
 
                     float val = GetVoxelValue(voxelPt);
                     _voxelValues[primaryDimIdx].Add(val);
-
 
                 }
             }
@@ -163,39 +163,43 @@ namespace Chromodoris
             return (float)val;
         }
         #endregion methods
+    }
 
-        private class PointCloudVoxelData
+    public class PointCloudVoxelData
+    {
+        public List<Point3d> Pts;
+        private readonly KDTree<int> _tree;
+
+        public PointCloudVoxelData(List<Point3d> inPts)
         {
-            public List<Point3d> Pts;
-            private readonly KDTree<int> _tree;
+            Pts = new List<Point3d>(inPts);
+            _tree = new KDTree<int>(3);
 
-            public PointCloudVoxelData(List<Point3d> inPts)
+            for (int i = 0; i < Pts.Count; i++)
             {
-                Pts = new List<Point3d>(inPts);
-                _tree = new KDTree<int>(3);
-
-                for (int i = 0; i < Pts.Count; i++)
-                {
-                    double[] pos = { Pts[i].X, Pts[i].Y, Pts[i].Z };
-                    _tree.AddPoint(pos, i);
-                }
-            }
-            public double GetClosestPtDistance(Point3d voxelPt, int maxCount = 1)
-            {
-                double[] voxelPos = { voxelPt.X, voxelPt.Y, voxelPt.Z };
-                NearestNeighbour<int> nbors = _tree.NearestNeighbors(voxelPos, maxCount);
-                int idx = nbors.First();
-                Point3d pt = Pts[idx];
-                return pt.DistanceTo(voxelPt);
+                double[] pos = { Pts[i].X, Pts[i].Y, Pts[i].Z };
+                _tree.AddPoint(pos, i);
             }
         }
-
-        private struct DimensionValues
+        public double GetClosestPtDistance(Point3d voxelPt, int maxCount = 1)
         {
-            public int NVoxels;
-            public double MinCoord;
-            public double StepSize;
-            public double OffsetSize;
+            double[] voxelPos = { voxelPt.X, voxelPt.Y, voxelPt.Z };
+            NearestNeighbour<int> nbors = _tree.NearestNeighbors(voxelPos, maxCount);
+            int idx = nbors.First();
+            Point3d pt = Pts[idx];
+            return pt.DistanceTo(voxelPt);
+        }
+    }
+
+    public struct DimensionValues
+    {
+        public int NVoxels;
+        public double MinCoord;
+        public double StepSize;
+    }
+
+        {
+            VoxelIdx = voxelIdx;
         }
 
     }
