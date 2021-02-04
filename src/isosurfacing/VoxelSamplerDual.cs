@@ -198,9 +198,4 @@ namespace Chromodoris
         public double StepSize;
     }
 
-        {
-            VoxelIdx = voxelIdx;
-        }
-
-    }
 }
