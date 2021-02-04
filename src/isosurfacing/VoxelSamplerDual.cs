@@ -40,7 +40,9 @@ namespace Chromodoris
         private readonly List<Point3d>[] _voxelPts;
         private readonly List<float>[] _voxelValues;
         private readonly bool _zyx;
+        private readonly int _nVoxels;
         private readonly List<DimensionValues> _outputOrderedDimVals;
+        private readonly List<VoxelData> _voxelList;
         #endregion fields
 
         #region constructors
@@ -68,6 +70,8 @@ namespace Chromodoris
             YVals.StepSize = (BBox.Y.Max - BBox.Y.Min) / (resY - 1);
             ZVals.StepSize = (BBox.Z.Max - BBox.Z.Min) / (resZ - 1);
 
+            _nVoxels = resX * resY * resZ;
+
             _outputOrderedDimVals = new List<DimensionValues> { XVals, YVals, ZVals };
             if (zyx)
             {
@@ -76,8 +80,8 @@ namespace Chromodoris
 
             _zyx = zyx;
 
-            _voxelValues = new List<float>[_outputOrderedDimVals[0].NVoxels];
-            _voxelPts = new List<Point3d>[_outputOrderedDimVals[0].NVoxels];
+            _voxelValues = new List<float>[_nVoxels];
+            _voxelPts = new List<Point3d>[_nVoxels];
 
         }
         #endregion constructors
@@ -87,13 +91,15 @@ namespace Chromodoris
         internal List<Point3d> VoxelPtsList { get { return FlattenArrayOfList(_voxelPts); } }
 
         internal List<float> VoxelValuesList { get { return FlattenArrayOfList(_voxelValues); } }
+
+        private int[] DimensionOrder { get { return (!_zyx) ? new int[] { 0, 1, 2 } : new int[] { 2, 1, 0 }; } }
         #endregion properties
 
         #region methods
         internal void ExecuteMultiThreaded()
         {
             var pLel = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
-            System.Threading.Tasks.Parallel.ForEach(Enumerable.Range(0, _outputOrderedDimVals[0].NVoxels), pLel, i => AssignSection(i));
+            System.Threading.Tasks.Parallel.ForEach(Enumerable.Range(0, _nVoxels), pLel, i => SetVoxelValues(i));
         }
 
         private static List<T> FlattenArrayOfList<T>(IList<T>[] array)
@@ -105,6 +111,19 @@ namespace Chromodoris
             }
 
             return newList;
+        }
+
+        private void SetVoxelValues(int voxelIdx)
+        {
+            var voxel = new Voxel(voxelIdx);
+
+            var voxelPt = voxel.GetVoxelCenterPt(_outputOrderedDimVals, dimensionOrder: DimensionOrder);
+
+            _voxelPts[voxelIdx].Add(voxelPt);
+
+            float val = GetVoxelValue(voxelPt);
+            _voxelValues[voxelIdx].Add(val);
+
         }
 
         private void AssignSection(int primaryDimIdx)
@@ -198,9 +217,62 @@ namespace Chromodoris
         public double StepSize;
     }
 
+    public class Voxel
+    {
+
+        #region fields
+        #endregion
+
+        #region constructors
+        public Voxel(int voxelIdx)
         {
             VoxelIdx = voxelIdx;
         }
+        #endregion
 
+        #region properties
+        public int VoxelIdx { get; set; }
+        #endregion
+
+        #region methods
+
+        public int[] GetVoxelSpaceCoord(int primaryRes, int secondaryRes)
+        {
+            var coord = new int[3];
+
+            coord[0] = VoxelIdx / primaryRes;
+
+            int mod = VoxelIdx % primaryRes;
+
+            coord[1] = mod / secondaryRes;
+
+            coord[2] = mod % secondaryRes;
+
+            return coord;
+
+        }
+
+        public Point3d GetVoxelCenterPt(List<DimensionValues> dimVals, int[] dimensionOrder = null)
+        {
+            if (dimensionOrder is null)
+            {
+                dimensionOrder = new int[] { 0, 1, 2 };
+            }
+
+            int[] voxelSpaceCoord = GetVoxelSpaceCoord(dimVals[0].NVoxels, dimVals[1].NVoxels);
+
+            var coord = new double[3];
+
+            for (int i = 0; i < 3; i++)
+            {
+                coord[i] = dimVals[i].MinCoord + voxelSpaceCoord[i] * dimVals[i].StepSize;
+
+            }
+
+            return new Point3d(coord[dimensionOrder[0]], coord[dimensionOrder[1]], coord[dimensionOrder[2]]);
+        }
+
+        #endregion
     }
+
 }
