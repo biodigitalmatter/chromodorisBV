@@ -34,19 +34,18 @@ namespace Chromodoris
 {
     internal class VoxelSamplerDual
     {
+        #region fields
         private readonly Box _bBox;
         private readonly PointCloudVoxelData _ptCloudVoxel1;
         private readonly PointCloudVoxelData _ptCloudVoxel2;
-        private readonly int _xRes;
-        private readonly double _xSpace;
-        private readonly int _yRes;
-        private readonly double _ySpace;
-        private readonly int _zRes;
-        private readonly double _zSpace;
-        private List<Point3d>[] _voxelPts;
-        private List<float>[] _voxelValues;
+        private readonly List<Point3d>[] _voxelPts;
+        private readonly List<float>[] _voxelValues;
+        private readonly bool _zyx;
+        private readonly List<DimensionValues> _outputOrderedDimVals;
+        #endregion fields
 
-        public VoxelSamplerDual(List<Point3d> pointCloud1, List<Point3d> pointCloud2, Box box, int resX, int resY, int resZ)
+        #region constructors
+        internal VoxelSamplerDual(List<Point3d> pointCloud1, List<Point3d> pointCloud2, Box box, int resX, int resY, int resZ, bool zyx = false)
         {
             _ptCloudVoxel1 = new PointCloudVoxelData(pointCloud1);
             _ptCloudVoxel2 = new PointCloudVoxelData(pointCloud2);
@@ -54,28 +53,52 @@ namespace Chromodoris
             _bBox = box;
             _bBox.RepositionBasePlane(box.Center);
 
-            _xRes = resX;
-            _yRes = resY;
-            _zRes = resZ;
+            DimensionValues XVals;
+            DimensionValues YVals;
+            DimensionValues ZVals;
 
-            _xSpace = (BBox.X.Max - BBox.X.Min) / (_xRes - 1);
-            _ySpace = (BBox.Y.Max - BBox.Y.Min) / (_yRes - 1);
-            _zSpace = (BBox.Z.Max - BBox.Z.Min) / (_zRes - 1);
+            XVals.NVoxels = resX;
+            YVals.NVoxels = resY;
+            ZVals.NVoxels = resZ;
 
-            _voxelValues = new List<float>[_xRes];
-            _voxelPts = new List<Point3d>[_xRes];
+            XVals.MinCoord = BBox.X.Min;
+            YVals.MinCoord = BBox.Y.Min;
+            ZVals.MinCoord = BBox.Z.Min;
+
+            XVals.StepSize = (BBox.X.Max - BBox.X.Min) / (resX - 1);
+            YVals.StepSize = (BBox.Y.Max - BBox.Y.Min) / (resY - 1);
+            ZVals.StepSize = (BBox.Z.Max - BBox.Z.Min) / (resZ - 1);
+
+            XVals.OffsetSize = BBox.Center.X;
+            YVals.OffsetSize = BBox.Center.Y;
+            ZVals.OffsetSize = BBox.Center.Z;
+
+            _outputOrderedDimVals = new List<DimensionValues> { XVals, YVals, ZVals };
+            if (zyx)
+            {
+                _outputOrderedDimVals.Reverse();
+            }
+
+            _zyx = zyx;
+
+            _voxelValues = new List<float>[_outputOrderedDimVals[0].NVoxels];
+            _voxelPts = new List<Point3d>[_outputOrderedDimVals[0].NVoxels];
+
         }
+        #endregion constructors
 
-        public Box BBox { get => _bBox; }
+        #region properties
+        internal Box BBox { get => _bBox; }
+        internal List<Point3d> VoxelPtsList { get { return FlattenArrayOfList(_voxelPts); } }
 
-        public List<Point3d> VoxelPtsList { get { return FlattenArrayOfList(_voxelPts); } }
+        internal List<float> VoxelValuesList { get { return FlattenArrayOfList(_voxelValues); } }
+        #endregion properties
 
-        public List<float> VoxelValuesList { get { return FlattenArrayOfList(_voxelValues); } }
-
-        public void ExecuteMultiThreaded()
+        #region methods
+        internal void ExecuteMultiThreaded()
         {
             var pLel = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
-            System.Threading.Tasks.Parallel.ForEach(Enumerable.Range(0, _xRes), pLel, x => AssignSection(x));
+            System.Threading.Tasks.Parallel.ForEach(Enumerable.Range(0, _outputOrderedDimVals[0].NVoxels), pLel, i => AssignSection(i));
         }
 
         private static List<T> FlattenArrayOfList<T>(IList<T>[] array)
@@ -88,25 +111,43 @@ namespace Chromodoris
 
             return newList;
         }
-        private void AssignSection(int xIdx)
+
+        private void AssignSection(int primaryDimIdx)
         {
-            // List specific to xIdx slice to avoid race conditions
-            _voxelValues[xIdx] = new List<float>();
-            _voxelPts[xIdx] = new List<Point3d>();
 
-            double xCoord = BBox.X.Min + xIdx * _xSpace + BBox.Center.X;
-            for (int yIdx = 0; yIdx < _yRes; yIdx++)
+            double getCoord(int idx, DimensionValues dimension)
             {
-                double yCoord = BBox.Y.Min + yIdx * _ySpace + BBox.Center.Y;
-                for (int zIdx = 0; zIdx < _zRes; zIdx++)
-                {
-                    double zCoord = BBox.Z.Min + zIdx * _zSpace + BBox.Center.Z;
+                return dimension.MinCoord + idx * dimension.StepSize + dimension.OffsetSize;
+            }
 
-                    var voxelPt = new Point3d(xCoord, yCoord, zCoord);
-                    _voxelPts[xIdx].Add(voxelPt);
+            // Lists specific to slice to avoid race conditions
+            _voxelValues[primaryDimIdx] = new List<float>();
+            _voxelPts[primaryDimIdx] = new List<Point3d>();
+
+            // Initialize with values so they can be overwritten
+            var coord = new List<double> { 0, 0, 0 };
+
+            coord[0] = getCoord(primaryDimIdx, _outputOrderedDimVals[0]);
+            for (int secondaryDimIdx = 0; secondaryDimIdx < _outputOrderedDimVals[1].NVoxels; secondaryDimIdx++)
+            {
+                coord[1] = getCoord(secondaryDimIdx, _outputOrderedDimVals[1]);
+                for (int tertiaryDimIdx = 0; tertiaryDimIdx < _outputOrderedDimVals[2].NVoxels; tertiaryDimIdx++)
+                {
+                    coord[2] = getCoord(tertiaryDimIdx, _outputOrderedDimVals[2]);
+
+                    if (_zyx)
+                    {
+                        coord.Reverse();
+                    }
+
+                    // Here the order has to be xyz
+                    Point3d voxelPt = new Point3d(coord[0], coord[1], coord[2]);
+                    _voxelPts[primaryDimIdx].Add(voxelPt);
 
                     float val = GetVoxelValue(voxelPt);
-                    _voxelValues[xIdx].Add(val);
+                    _voxelValues[primaryDimIdx].Add(val);
+
+
                 }
             }
         }
@@ -121,6 +162,7 @@ namespace Chromodoris
 
             return (float)val;
         }
+        #endregion methods
 
         private class PointCloudVoxelData
         {
@@ -138,7 +180,6 @@ namespace Chromodoris
                     _tree.AddPoint(pos, i);
                 }
             }
-
             public double GetClosestPtDistance(Point3d voxelPt, int maxCount = 1)
             {
                 double[] voxelPos = { voxelPt.X, voxelPt.Y, voxelPt.Z };
@@ -148,5 +189,14 @@ namespace Chromodoris
                 return pt.DistanceTo(voxelPt);
             }
         }
+
+        private struct DimensionValues
+        {
+            public int NVoxels;
+            public double MinCoord;
+            public double StepSize;
+            public double OffsetSize;
+        }
+
     }
 }

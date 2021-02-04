@@ -54,6 +54,7 @@ namespace Chromodoris
         int InXIdx;
         int InYIdx;
         int InZIdx;
+        int InZYXIdx;
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
@@ -63,6 +64,7 @@ namespace Chromodoris
             InXIdx = pManager.AddIntegerParameter("X Resolution", "X", "The number of grid cells in the X-direction.", GH_ParamAccess.item);
             InYIdx = pManager.AddIntegerParameter("Y Resolution", "Y", "The number of grid cells in the Y-direction.", GH_ParamAccess.item);
             InZIdx = pManager.AddIntegerParameter("Z Resolution", "Z", "The number of grid cells in the Z-direction.", GH_ParamAccess.item);
+            InZYXIdx = pManager.AddBooleanParameter("ZYX output", "ZYX", "Order output first by Z dimension, then Y and last X. Defaults to True.", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -91,6 +93,7 @@ namespace Chromodoris
             var yr = 0;
             var zr = 0;
             var box = new Box();
+            var zyx = true;
 
             if (!DA.GetDataList(InP1Idx, pointCloud1))
             {
@@ -121,8 +124,9 @@ namespace Chromodoris
             {
                 return;
             }
+            DA.GetData(InZYXIdx, ref zyx);
 
-            var sampler = new VoxelSamplerDual(pointCloud1, pointCloud2, box, xr, yr, zr);
+            var sampler = new VoxelSamplerDual(pointCloud1, pointCloud2, box, xr, yr, zr, zyx: zyx);
             sampler.ExecuteMultiThreaded();
 
             _ = DA.SetData(OutBIdx, sampler.BBox);
