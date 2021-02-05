@@ -25,8 +25,10 @@
  */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using KDTree;
 using Rhino.Geometry;
 
@@ -45,11 +47,11 @@ namespace Chromodoris
 
         private readonly KDTreePtCloud _ptCloudVoxel1;
         private readonly KDTreePtCloud _ptCloudVoxel2;
-        private readonly List<Point3d>[] _voxelPts;
-        private readonly List<float>[] _voxelValues;
         private readonly bool _zyx;
         private readonly int _nVoxels;
         private readonly List<DimensionValues> _outputOrderedDimVals;
+        private readonly Point3d[] _voxelPts;
+        private readonly float[] _voxelValues;
 
         #endregion fields
 
@@ -88,8 +90,8 @@ namespace Chromodoris
 
             _zyx = zyx;
 
-            _voxelValues = new List<float>[_nVoxels];
-            _voxelPts = new List<Point3d>[_nVoxels];
+            _voxelPts = new Point3d[_nVoxels];
+            _voxelValues = new float[_nVoxels];
         }
 
         #endregion constructors
@@ -97,9 +99,9 @@ namespace Chromodoris
         #region properties
 
         internal Box BBox { get; }
-        internal List<Point3d> VoxelPtsList { get { return FlattenArrayOfList(_voxelPts); } }
+        internal List<Point3d> VoxelPts { get => _voxelPts.ToList(); }
 
-        internal List<float> VoxelValuesList { get { return FlattenArrayOfList(_voxelValues); } }
+        internal List<float> VoxelValues { get => _voxelValues.ToList(); }
 
         private int[] DimensionOrder { get { return (!_zyx) ? new int[] { 0, 1, 2 } : new int[] { 2, 1, 0 }; } }
 
@@ -109,19 +111,13 @@ namespace Chromodoris
 
         internal void ExecuteMultiThreaded()
         {
-            var pLel = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
-            System.Threading.Tasks.Parallel.ForEach(Enumerable.Range(0, _nVoxels), pLel, i => SetVoxelValues(i));
-        }
-
-        private static List<T> FlattenArrayOfList<T>(IList<T>[] array)
-        {
-            List<T> newList = new List<T>();
-            foreach (List<T> list in array)
+            // var pLel = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
+            // System.Threading.Tasks.Parallel.ForEach(Enumerable.Range(0, _nVoxels), pLel, i => SetVoxelValues(i));
+            Parallel.ForEach(Partitioner.Create(0, _nVoxels), (range, loopState) =>
             {
-                newList.AddRange(list);
-            }
-
-            return newList;
+                for (int i = range.Item1; i < range.Item2; i++)
+                    SetVoxelValues(i);
+            });
         }
 
         private void SetVoxelValues(int voxelIdx)
@@ -130,10 +126,8 @@ namespace Chromodoris
 
             var voxelPt = voxel.GetVoxelCenterPt(_outputOrderedDimVals, dimensionOrder: DimensionOrder);
 
-            _voxelPts[voxelIdx].Add(voxelPt);
-
-            float val = GetVoxelValue(voxelPt);
-            _voxelValues[voxelIdx].Add(val);
+            _voxelPts.SetValue(voxelPt, voxelIdx);
+            _voxelValues.SetValue(GetVoxelValue(voxelPt), voxelIdx);
         }
 
         private float GetVoxelValue(Point3d voxelPt)
