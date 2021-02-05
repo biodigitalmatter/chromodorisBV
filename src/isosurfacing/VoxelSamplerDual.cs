@@ -32,9 +32,17 @@ using Rhino.Geometry;
 
 namespace Chromodoris
 {
+    internal struct DimensionValues
+    {
+        public int NVoxels;
+        public double MinCoord;
+        public double StepSize;
+    }
+
     internal class VoxelSamplerDual
     {
         #region fields
+
         private readonly KDTreePtCloud _ptCloudVoxel1;
         private readonly KDTreePtCloud _ptCloudVoxel2;
         private readonly List<Point3d>[] _voxelPts;
@@ -42,16 +50,17 @@ namespace Chromodoris
         private readonly bool _zyx;
         private readonly int _nVoxels;
         private readonly List<DimensionValues> _outputOrderedDimVals;
+
         #endregion fields
 
         #region constructors
+
         internal VoxelSamplerDual(List<Point3d> pointCloud1, List<Point3d> pointCloud2, Box box, int resX, int resY, int resZ, bool zyx = false)
         {
             _ptCloudVoxel1 = new KDTreePtCloud(pointCloud1);
             _ptCloudVoxel2 = new KDTreePtCloud(pointCloud2);
 
             BBox = box;
-            // _bBox.RepositionBasePlane(box.Center);
 
             DimensionValues XVals;
             DimensionValues YVals;
@@ -81,20 +90,23 @@ namespace Chromodoris
 
             _voxelValues = new List<float>[_nVoxels];
             _voxelPts = new List<Point3d>[_nVoxels];
-
         }
+
         #endregion constructors
 
         #region properties
+
         internal Box BBox { get; }
         internal List<Point3d> VoxelPtsList { get { return FlattenArrayOfList(_voxelPts); } }
 
         internal List<float> VoxelValuesList { get { return FlattenArrayOfList(_voxelValues); } }
 
         private int[] DimensionOrder { get { return (!_zyx) ? new int[] { 0, 1, 2 } : new int[] { 2, 1, 0 }; } }
+
         #endregion properties
 
         #region methods
+
         internal void ExecuteMultiThreaded()
         {
             var pLel = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
@@ -122,53 +134,7 @@ namespace Chromodoris
 
             float val = GetVoxelValue(voxelPt);
             _voxelValues[voxelIdx].Add(val);
-
         }
-
-        //private void AssignSection(int primaryDimIdx)
-        //{
-
-        //    double getCoord(int idx, DimensionValues dimension)
-        //    {
-        //        return dimension.MinCoord + idx * dimension.StepSize; // + dimension.OffsetSize;
-        //    }
-
-        //    // Lists specific to slice to avoid race conditions
-        //    _voxelValues[primaryDimIdx] = new List<float>();
-        //    _voxelPts[primaryDimIdx] = new List<Point3d>();
-
-        //    // Initialize once
-        //    Point3d voxelPt;
-
-        //    // Initialize with values so they can be overwritten
-        //    var coord = new List<double> { 0, 0, 0 };
-
-        //    coord[0] = getCoord(primaryDimIdx, _outputOrderedDimVals[0]);
-        //    for (int secondaryDimIdx = 0; secondaryDimIdx < _outputOrderedDimVals[1].NVoxels; secondaryDimIdx++)
-        //    {
-        //        coord[1] = getCoord(secondaryDimIdx, _outputOrderedDimVals[1]);
-        //        for (int tertiaryDimIdx = 0; tertiaryDimIdx < _outputOrderedDimVals[2].NVoxels; tertiaryDimIdx++)
-        //        {
-        //            coord[2] = getCoord(tertiaryDimIdx, _outputOrderedDimVals[2]);
-
-        //            // Here the order has to be xyz
-        //            if (!_zyx)
-        //            {
-        //                voxelPt = new Point3d(coord[0], coord[1], coord[2]);
-        //            }
-        //            else
-        //            {
-        //                voxelPt = new Point3d(coord[2], coord[1], coord[0]);
-        //            }
-
-        //            _voxelPts[primaryDimIdx].Add(voxelPt);
-
-        //            float val = GetVoxelValue(voxelPt);
-        //            _voxelValues[primaryDimIdx].Add(val);
-
-        //        }
-        //    }
-        //}
 
         private float GetVoxelValue(Point3d voxelPt)
         {
@@ -180,10 +146,11 @@ namespace Chromodoris
 
             return (float)val;
         }
+
         #endregion methods
     }
 
-    public class KDTreePtCloud
+    internal class KDTreePtCloud
     {
         public List<Point3d> Pts;
         private readonly KDTree<int> _tree;
@@ -199,6 +166,7 @@ namespace Chromodoris
                 _tree.AddPoint(pos, i);
             }
         }
+
         public double GetClosestPtDistance(Point3d testPt)
         {
             double[] coord = { testPt.X, testPt.Y, testPt.Z };
@@ -208,29 +176,22 @@ namespace Chromodoris
         }
     }
 
-    public struct DimensionValues
+    internal class Voxel
     {
-        public int NVoxels;
-        public double MinCoord;
-        public double StepSize;
-    }
-
-    public class Voxel
-    {
-
-        #region fields
-        #endregion
-
         #region constructors
+
         public Voxel(int voxelIdx)
         {
             VoxelIdx = voxelIdx;
         }
-        #endregion
+
+        #endregion constructors
 
         #region properties
+
         public int VoxelIdx { get; set; }
-        #endregion
+
+        #endregion properties
 
         #region methods
 
@@ -247,7 +208,6 @@ namespace Chromodoris
             coord[2] = mod % secondaryRes;
 
             return coord;
-
         }
 
         public Point3d GetVoxelCenterPt(List<DimensionValues> dimVals, int[] dimensionOrder = null)
@@ -264,13 +224,11 @@ namespace Chromodoris
             for (int i = 0; i < 3; i++)
             {
                 coord[i] = dimVals[i].MinCoord + voxelSpaceCoord[i] * dimVals[i].StepSize;
-
             }
 
             return new Point3d(coord[dimensionOrder[0]], coord[dimensionOrder[1]], coord[dimensionOrder[2]]);
         }
 
-        #endregion
+        #endregion methods
     }
-
 }
