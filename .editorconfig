@@ -20,3 +20,6 @@ csharp_style_var_when_type_is_apparent = true
 
 # IDE0040: Add accessibility modifiers
 dotnet_style_require_accessibility_modifiers = omit_if_default
+
+# IDE0058: Remove unnecessary expression value
+csharp_style_unused_value_expression_statement_preference = discard_variable

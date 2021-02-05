@@ -12,6 +12,7 @@ namespace Chromodoris
     public class VolumetricSpace
     {
 
+        #region fields
         public int resX, resY, resZ;
         public int resX1, resY1, resZ1;
 
@@ -19,10 +20,12 @@ namespace Chromodoris
 
         public int numCells;
 
-        private float[,,] _isoData;
+        private readonly float[,,] _isoData;
 
-        public float[,,] IsoData { get => _isoData; }
+        public float[,,] IsoData => _isoData;
+        #endregion
 
+        #region constructors
         public VolumetricSpace(float[,,] isoData)
         {
             this.resX = isoData.GetLength(0);
@@ -49,10 +52,12 @@ namespace Chromodoris
             numCells = sliceRes * resZ;
             _isoData = ArrayFromList(isoDataAsList);
         }
+        #endregion
 
+        #region methods
         private float[,,] ArrayFromList(List<float> isoDataAsList)
         {
-            float[,,] isoData = new float[resX, resY, resZ];
+            float[,,] array = new float[resX, resY, resZ];
 
             int listIdx = 0;
 
@@ -63,7 +68,7 @@ namespace Chromodoris
                     for (int zIdx = 0; zIdx < resZ; zIdx++)
                     {
 
-                        isoData[xIdx, yIdx, zIdx] = isoDataAsList[listIdx];
+                        array[xIdx, yIdx, zIdx] = isoDataAsList[listIdx];
 
                         listIdx++;
 
@@ -72,9 +77,10 @@ namespace Chromodoris
                 }
             }
 
-            return isoData;
+            return array;
         }
 
+        /*
         private int clip(int val, int min, int max)
         {
             if (val < min)
@@ -89,6 +95,7 @@ namespace Chromodoris
 
             return val;
         }
+        */
 
         public double getVoxelAt(int index)
         {
@@ -107,12 +114,13 @@ namespace Chromodoris
             }
 
             xVal = index;
-            return _isoData[xVal, yVal, zVal];
+            return IsoData[xVal, yVal, zVal];
         }
 
         public double getVoxelAt(int x, int y, int z)
         {
-            return _isoData[x, y, z];
+            return IsoData[x, y, z];
         }
+        #endregion
     }
 }
