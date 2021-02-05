@@ -35,8 +35,8 @@ namespace Chromodoris
     internal class VoxelSamplerDual
     {
         #region fields
-        private readonly PointCloudVoxelData _ptCloudVoxel1;
-        private readonly PointCloudVoxelData _ptCloudVoxel2;
+        private readonly KDTreePtCloud _ptCloudVoxel1;
+        private readonly KDTreePtCloud _ptCloudVoxel2;
         private readonly List<Point3d>[] _voxelPts;
         private readonly List<float>[] _voxelValues;
         private readonly bool _zyx;
@@ -47,8 +47,8 @@ namespace Chromodoris
         #region constructors
         internal VoxelSamplerDual(List<Point3d> pointCloud1, List<Point3d> pointCloud2, Box box, int resX, int resY, int resZ, bool zyx = false)
         {
-            _ptCloudVoxel1 = new PointCloudVoxelData(pointCloud1);
-            _ptCloudVoxel2 = new PointCloudVoxelData(pointCloud2);
+            _ptCloudVoxel1 = new KDTreePtCloud(pointCloud1);
+            _ptCloudVoxel2 = new KDTreePtCloud(pointCloud2);
 
             BBox = box;
             // _bBox.RepositionBasePlane(box.Center);
@@ -183,12 +183,12 @@ namespace Chromodoris
         #endregion methods
     }
 
-    public class PointCloudVoxelData
+    public class KDTreePtCloud
     {
         public List<Point3d> Pts;
         private readonly KDTree<int> _tree;
 
-        public PointCloudVoxelData(List<Point3d> inPts)
+        public KDTreePtCloud(List<Point3d> inPts)
         {
             Pts = new List<Point3d>(inPts);
             _tree = new KDTree<int>(3);
@@ -199,13 +199,12 @@ namespace Chromodoris
                 _tree.AddPoint(pos, i);
             }
         }
-        public double GetClosestPtDistance(Point3d voxelPt, int maxCount = 1)
+        public double GetClosestPtDistance(Point3d testPt)
         {
-            double[] voxelPos = { voxelPt.X, voxelPt.Y, voxelPt.Z };
-            NearestNeighbour<int> nbors = _tree.NearestNeighbors(voxelPos, maxCount);
-            int idx = nbors.First();
-            Point3d pt = Pts[idx];
-            return pt.DistanceTo(voxelPt);
+            double[] coord = { testPt.X, testPt.Y, testPt.Z };
+            int nborIdx = _tree.NearestNeighbors(coord, 1).First();
+            Point3d pt = Pts[nborIdx];
+            return pt.DistanceTo(testPt);
         }
     }
 
