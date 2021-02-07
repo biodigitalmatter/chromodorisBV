@@ -43,7 +43,7 @@ namespace Chromodoris
         #endregion Fields
     }
 
-    internal class PointCloudVoxelData
+    internal class KDTreePtCloud
     {
         #region Fields
 
@@ -54,7 +54,7 @@ namespace Chromodoris
 
         #region Constructors
 
-        internal PointCloudVoxelData(List<Point3d> inPts)
+        internal KDTreePtCloud(List<Point3d> inPts)
         {
             _pts = new List<Point3d>(inPts);
             _tree = new KDTree<int>(3);
@@ -72,12 +72,11 @@ namespace Chromodoris
 
         #region Methods
 
-        internal double GetClosestPtDistance(Point3d voxelPt, int maxCount = 1)
+        internal double GetClosestPtDistance(Point3d voxelPt)
         {
             double[] voxelPos = { voxelPt.X, voxelPt.Y, voxelPt.Z };
-            NearestNeighbour<int> nbors = _tree.NearestNeighbors(voxelPos, maxCount);
-            int idx = nbors.First();
-            Point3d pt = _pts[idx];
+            int nborIdx = _tree.NearestNeighbors(voxelPos, 1).First();
+            Point3d pt = _pts[nborIdx];
             return pt.DistanceTo(voxelPt);
         }
 
@@ -88,8 +87,7 @@ namespace Chromodoris
     {
         #region Fields
 
-        private readonly PointCloudVoxelData _ptCloudVoxel1;
-        private readonly PointCloudVoxelData _ptCloudVoxel2;
+        private readonly KDTreePtCloud[] _ptClouds;
         private readonly List<Point3d>[] _voxelPts;
         private readonly List<float>[] _voxelValues;
         private readonly bool _zyx;
@@ -101,15 +99,11 @@ namespace Chromodoris
 
         internal VoxelSamplerDual(List<Point3d> pointCloud1, List<Point3d> pointCloud2, Box box, int resX, int resY, int resZ, bool zyx = false)
         {
-            _ptCloudVoxel1 = new PointCloudVoxelData(pointCloud1);
-            _ptCloudVoxel2 = new PointCloudVoxelData(pointCloud2);
+            _ptClouds = new KDTreePtCloud[2] { new KDTreePtCloud(pointCloud1), new KDTreePtCloud(pointCloud2) };
 
             BBox = box;
-            // _bBox.RepositionBasePlane(box.Center);
 
-            DimensionValues XVals;
-            DimensionValues YVals;
-            DimensionValues ZVals;
+            DimensionValues XVals, YVals, ZVals;
 
             XVals.NVoxels = resX;
             YVals.NVoxels = resY;
@@ -142,9 +136,9 @@ namespace Chromodoris
         #region Properties
 
         internal Box BBox { get; }
-        internal List<Point3d> VoxelPtsList { get { return FlattenArrayOfList(_voxelPts); } }
+        internal List<Point3d> VoxelPtsList { get => FlattenArrayOfList(_voxelPts); }
 
-        internal List<float> VoxelValuesList { get { return FlattenArrayOfList(_voxelValues); } }
+        internal List<float> VoxelValuesList { get => FlattenArrayOfList(_voxelValues); }
 
         #endregion Properties
 
@@ -173,7 +167,7 @@ namespace Chromodoris
         {
             double getCoord(int idx, DimensionValues dimension)
             {
-                return dimension.MinCoord + idx * dimension.StepSize; // + dimension.OffsetSize;
+                return dimension.MinCoord + idx * dimension.StepSize;
             }
 
             // Lists specific to slice to avoid race conditions
@@ -183,39 +177,33 @@ namespace Chromodoris
             // Initialize once
             Point3d voxelPt;
 
-            // Initialize with values so they can be overwritten
-            var coord = new double[3];
+            var outputOrderedCoords = new double[3];
 
-            coord[0] = getCoord(primaryDimIdx, _outputOrderedDimVals[0]);
+            outputOrderedCoords[0] = getCoord(primaryDimIdx, _outputOrderedDimVals[0]);
             for (int secondaryDimIdx = 0; secondaryDimIdx < _outputOrderedDimVals[1].NVoxels; secondaryDimIdx++)
             {
-                coord[1] = getCoord(secondaryDimIdx, _outputOrderedDimVals[1]);
+                outputOrderedCoords[1] = getCoord(secondaryDimIdx, _outputOrderedDimVals[1]);
                 for (int tertiaryDimIdx = 0; tertiaryDimIdx < _outputOrderedDimVals[2].NVoxels; tertiaryDimIdx++)
                 {
-                    coord[2] = getCoord(tertiaryDimIdx, _outputOrderedDimVals[2]);
+                    outputOrderedCoords[2] = getCoord(tertiaryDimIdx, _outputOrderedDimVals[2]);
 
-                    // Here the order has to be xyz
-                    if (!_zyx)
-                    {
-                        voxelPt = new Point3d(coord[0], coord[1], coord[2]);
-                    }
-                    else
-                    {
-                        voxelPt = new Point3d(coord[2], coord[1], coord[0]);
-                    }
+                    voxelPt = OutputOrderedCoordsToPoint3d(outputOrderedCoords);
 
                     _voxelPts[primaryDimIdx].Add(voxelPt);
-
-                    float val = GetVoxelValue(voxelPt);
-                    _voxelValues[primaryDimIdx].Add(val);
+                    _voxelValues[primaryDimIdx].Add(GetVoxelValue(voxelPt));
                 }
             }
         }
 
+        private Point3d OutputOrderedCoordsToPoint3d(double[] inputCoords)
+        {
+            return (!_zyx) ? new Point3d(inputCoords[0], inputCoords[1], inputCoords[2]) : new Point3d(inputCoords[2], inputCoords[1], inputCoords[0]);
+        }
+
         private float GetVoxelValue(Point3d voxelPt)
         {
-            double voxelDist1 = _ptCloudVoxel1.GetClosestPtDistance(voxelPt);
-            double voxelDist2 = _ptCloudVoxel2.GetClosestPtDistance(voxelPt);
+            double voxelDist1 = _ptClouds[0].GetClosestPtDistance(voxelPt);
+            double voxelDist2 = _ptClouds[1].GetClosestPtDistance(voxelPt);
 
             double sumDist = voxelDist1 + voxelDist2;
             double val = voxelDist1 / sumDist;
