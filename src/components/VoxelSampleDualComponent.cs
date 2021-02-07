@@ -34,6 +34,17 @@ namespace Chromodoris
 {
     public class VoxelSampleDual : GH_Component
     {
+        private int InP1Idx;
+        private int InP2Idx;
+        private int InBIdx;
+        private int InXIdx;
+        private int InYIdx;
+        private int InZIdx;
+        private int InZYXIdx;
+        private int OutBIdx;
+        private int OutDIdx;
+        private int OutPIdx;
+
         /// <summary>
         /// Initializes a new instance of the VoxelSampleDual class.
         /// </summary>
@@ -45,17 +56,24 @@ namespace Chromodoris
         }
 
         /// <summary>
+        /// Gets the unique ID for this component. Do not change this ID after release.
+        /// </summary>
+        public override Guid ComponentGuid => new Guid("cb4e6b5c-6b2a-4a4e-9ab1-6c16ae102760");
+
+        /// <summary>
+        /// Provides an Icon for the component.
+        /// </summary>
+        protected override System.Drawing.Bitmap Icon
+        {
+            get
+            {
+                return Properties.Resources.Icons_Isosurface_Custom;
+            }
+        }
+
+        /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-
-        int InP1Idx;
-        int InP2Idx;
-        int InBIdx;
-        int InXIdx;
-        int InYIdx;
-        int InZIdx;
-        int InZYXIdx;
-
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             InP1Idx = pManager.AddPointParameter("Pointcloud 1", "P1", "First cloud to sample.", GH_ParamAccess.list);
@@ -70,10 +88,6 @@ namespace Chromodoris
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-
-        int OutBIdx;
-        int OutDIdx;
-        int OutPIdx;
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             OutBIdx = pManager.AddBoxParameter("Box", "B", "The generated box representing voxel grid.", GH_ParamAccess.item);
@@ -130,24 +144,8 @@ namespace Chromodoris
             sampler.ExecuteMultiThreaded();
 
             _ = DA.SetData(OutBIdx, sampler.BBox);
-            _ = DA.SetDataList(OutDIdx, sampler.VoxelValuesList);
-            _ = DA.SetDataList(OutPIdx, sampler.VoxelPtsList);
+            _ = DA.SetDataList(OutDIdx, sampler.VoxelValues);
+            _ = DA.SetDataList(OutPIdx, sampler.VoxelPts);
         }
-
-        /// <summary>
-        /// Provides an Icon for the component.
-        /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                return Properties.Resources.Icons_Isosurface_Custom;
-            }
-        }
-
-        /// <summary>
-        /// Gets the unique ID for this component. Do not change this ID after release.
-        /// </summary>
-        public override Guid ComponentGuid => new Guid("cb4e6b5c-6b2a-4a4e-9ab1-6c16ae102760");
     }
 }

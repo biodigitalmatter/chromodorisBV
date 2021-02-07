@@ -32,18 +32,55 @@ using Rhino.Geometry;
 
 namespace Chromodoris
 {
+    public struct DimensionValues
+    {
+        public int NVoxels;
+        public double MinCoord;
+        public double StepSize;
+    }
+
+    public class PointCloudVoxelData
+    {
+        private readonly List<Point3d> _pts;
+        private readonly KDTree<int> _tree;
+
+        public PointCloudVoxelData(List<Point3d> inPts)
+        {
+            _pts = new List<Point3d>(inPts);
+            _tree = new KDTree<int>(3);
+
+            for (int i = 0; i < _pts.Count; i++)
+            {
+                double[] pos = { _pts[i].X, _pts[i].Y, _pts[i].Z };
+                _tree.AddPoint(pos, i);
+            }
+        }
+
+        public double GetClosestPtDistance(Point3d voxelPt, int maxCount = 1)
+        {
+            double[] voxelPos = { voxelPt.X, voxelPt.Y, voxelPt.Z };
+            NearestNeighbour<int> nbors = _tree.NearestNeighbors(voxelPos, maxCount);
+            int idx = nbors.First();
+            Point3d pt = _pts[idx];
+            return pt.DistanceTo(voxelPt);
+        }
+    }
+
     internal class VoxelSamplerDual
     {
         #region fields
+
         private readonly PointCloudVoxelData _ptCloudVoxel1;
         private readonly PointCloudVoxelData _ptCloudVoxel2;
         private readonly List<Point3d>[] _voxelPts;
         private readonly List<float>[] _voxelValues;
         private readonly bool _zyx;
         private readonly List<DimensionValues> _outputOrderedDimVals;
+
         #endregion fields
 
         #region constructors
+
         internal VoxelSamplerDual(List<Point3d> pointCloud1, List<Point3d> pointCloud2, Box box, int resX, int resY, int resZ, bool zyx = false)
         {
             _ptCloudVoxel1 = new PointCloudVoxelData(pointCloud1);
@@ -78,18 +115,21 @@ namespace Chromodoris
 
             _voxelValues = new List<float>[_outputOrderedDimVals[0].NVoxels];
             _voxelPts = new List<Point3d>[_outputOrderedDimVals[0].NVoxels];
-
         }
+
         #endregion constructors
 
         #region properties
+
         internal Box BBox { get; }
         internal List<Point3d> VoxelPtsList { get { return FlattenArrayOfList(_voxelPts); } }
 
         internal List<float> VoxelValuesList { get { return FlattenArrayOfList(_voxelValues); } }
+
         #endregion properties
 
         #region methods
+
         internal void ExecuteMultiThreaded()
         {
             var pLel = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
@@ -109,7 +149,6 @@ namespace Chromodoris
 
         private void AssignSection(int primaryDimIdx)
         {
-
             double getCoord(int idx, DimensionValues dimension)
             {
                 return dimension.MinCoord + idx * dimension.StepSize; // + dimension.OffsetSize;
@@ -147,7 +186,6 @@ namespace Chromodoris
 
                     float val = GetVoxelValue(voxelPt);
                     _voxelValues[primaryDimIdx].Add(val);
-
                 }
             }
         }
@@ -162,40 +200,7 @@ namespace Chromodoris
 
             return (float)val;
         }
+
         #endregion methods
     }
-
-    public class PointCloudVoxelData
-    {
-        public List<Point3d> Pts;
-        private readonly KDTree<int> _tree;
-
-        public PointCloudVoxelData(List<Point3d> inPts)
-        {
-            Pts = new List<Point3d>(inPts);
-            _tree = new KDTree<int>(3);
-
-            for (int i = 0; i < Pts.Count; i++)
-            {
-                double[] pos = { Pts[i].X, Pts[i].Y, Pts[i].Z };
-                _tree.AddPoint(pos, i);
-            }
-        }
-        public double GetClosestPtDistance(Point3d voxelPt, int maxCount = 1)
-        {
-            double[] voxelPos = { voxelPt.X, voxelPt.Y, voxelPt.Z };
-            NearestNeighbour<int> nbors = _tree.NearestNeighbors(voxelPos, maxCount);
-            int idx = nbors.First();
-            Point3d pt = Pts[idx];
-            return pt.DistanceTo(voxelPt);
-        }
-    }
-
-    public struct DimensionValues
-    {
-        public int NVoxels;
-        public double MinCoord;
-        public double StepSize;
-    }
-
 }
