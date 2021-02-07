@@ -24,9 +24,10 @@
  *
  */
 
-using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using KDTree;
 using Rhino.Geometry;
 
@@ -148,8 +149,11 @@ namespace Chromodoris
 
         internal void ExecuteMultiThreaded()
         {
-            var pLel = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
-            System.Threading.Tasks.Parallel.ForEach(Enumerable.Range(0, _outputOrderedDimVals[0].NVoxels), pLel, i => AssignSection(i));
+            _ = Parallel.ForEach(Partitioner.Create(0, _outputOrderedDimVals[0].NVoxels), (range, _) =>
+              {
+                  for (int i = range.Item1; i < range.Item2; i++)
+                      SetVoxelValuesForSlice(i);
+              });
         }
 
         private static List<T> FlattenArrayOfList<T>(IList<T>[] array)
@@ -163,7 +167,7 @@ namespace Chromodoris
             return newList;
         }
 
-        private void AssignSection(int primaryDimIdx)
+        private void SetVoxelValuesForSlice(int primaryDimIdx)
         {
             double getCoord(int idx, DimensionValues dimension)
             {
