@@ -32,19 +32,29 @@ using Rhino.Geometry;
 
 namespace Chromodoris
 {
-    public struct DimensionValues
+    internal struct DimensionValues
     {
+        #region Fields
+
         public int NVoxels;
         public double MinCoord;
         public double StepSize;
+
+        #endregion Fields
     }
 
-    public class PointCloudVoxelData
+    internal class PointCloudVoxelData
     {
+        #region Fields
+
         private readonly List<Point3d> _pts;
         private readonly KDTree<int> _tree;
 
-        public PointCloudVoxelData(List<Point3d> inPts)
+        #endregion Fields
+
+        #region Constructors
+
+        internal PointCloudVoxelData(List<Point3d> inPts)
         {
             _pts = new List<Point3d>(inPts);
             _tree = new KDTree<int>(3);
@@ -56,7 +66,13 @@ namespace Chromodoris
             }
         }
 
-        public double GetClosestPtDistance(Point3d voxelPt, int maxCount = 1)
+        #endregion Constructors
+
+
+
+        #region Methods
+
+        internal double GetClosestPtDistance(Point3d voxelPt, int maxCount = 1)
         {
             double[] voxelPos = { voxelPt.X, voxelPt.Y, voxelPt.Z };
             NearestNeighbour<int> nbors = _tree.NearestNeighbors(voxelPos, maxCount);
@@ -64,11 +80,13 @@ namespace Chromodoris
             Point3d pt = _pts[idx];
             return pt.DistanceTo(voxelPt);
         }
+
+        #endregion Methods
     }
 
     internal class VoxelSamplerDual
     {
-        #region fields
+        #region Fields
 
         private readonly PointCloudVoxelData _ptCloudVoxel1;
         private readonly PointCloudVoxelData _ptCloudVoxel2;
@@ -77,9 +95,9 @@ namespace Chromodoris
         private readonly bool _zyx;
         private readonly List<DimensionValues> _outputOrderedDimVals;
 
-        #endregion fields
+        #endregion Fields
 
-        #region constructors
+        #region Constructors
 
         internal VoxelSamplerDual(List<Point3d> pointCloud1, List<Point3d> pointCloud2, Box box, int resX, int resY, int resZ, bool zyx = false)
         {
@@ -117,18 +135,22 @@ namespace Chromodoris
             _voxelPts = new List<Point3d>[_outputOrderedDimVals[0].NVoxels];
         }
 
-        #endregion constructors
+        #endregion Constructors
 
-        #region properties
+
+
+        #region Properties
 
         internal Box BBox { get; }
         internal List<Point3d> VoxelPtsList { get { return FlattenArrayOfList(_voxelPts); } }
 
         internal List<float> VoxelValuesList { get { return FlattenArrayOfList(_voxelValues); } }
 
-        #endregion properties
+        #endregion Properties
 
-        #region methods
+
+
+        #region Methods
 
         internal void ExecuteMultiThreaded()
         {
@@ -162,7 +184,7 @@ namespace Chromodoris
             Point3d voxelPt;
 
             // Initialize with values so they can be overwritten
-            var coord = new List<double> { 0, 0, 0 };
+            var coord = new double[3];
 
             coord[0] = getCoord(primaryDimIdx, _outputOrderedDimVals[0]);
             for (int secondaryDimIdx = 0; secondaryDimIdx < _outputOrderedDimVals[1].NVoxels; secondaryDimIdx++)
@@ -201,6 +223,6 @@ namespace Chromodoris
             return (float)val;
         }
 
-        #endregion methods
+        #endregion Methods
     }
 }

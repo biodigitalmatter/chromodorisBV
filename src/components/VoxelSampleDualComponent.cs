@@ -34,6 +34,8 @@ namespace Chromodoris
 {
     public class VoxelSampleDual : GH_Component
     {
+        #region Fields
+
         private int InP1Idx;
         private int InP2Idx;
         private int InBIdx;
@@ -45,6 +47,10 @@ namespace Chromodoris
         private int OutDIdx;
         private int OutPIdx;
 
+        #endregion Fields
+
+        #region Constructors
+
         /// <summary>
         /// Initializes a new instance of the VoxelSampleDual class.
         /// </summary>
@@ -54,6 +60,12 @@ namespace Chromodoris
               "ChromodorisBV", "Isosurface")
         {
         }
+
+        #endregion Constructors
+
+
+
+        #region Properties
 
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.
@@ -70,6 +82,12 @@ namespace Chromodoris
                 return Properties.Resources.Icons_Isosurface_Custom;
             }
         }
+
+        #endregion Properties
+
+
+
+        #region Methods
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -144,8 +162,10 @@ namespace Chromodoris
             sampler.ExecuteMultiThreaded();
 
             _ = DA.SetData(OutBIdx, sampler.BBox);
-            _ = DA.SetDataList(OutDIdx, sampler.VoxelValues);
-            _ = DA.SetDataList(OutPIdx, sampler.VoxelPts);
+            _ = DA.SetDataList(OutDIdx, sampler.VoxelValuesList);
+            _ = DA.SetDataList(OutPIdx, sampler.VoxelPtsList);
         }
+
+        #endregion Methods
     }
 }
