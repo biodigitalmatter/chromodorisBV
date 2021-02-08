@@ -169,10 +169,7 @@ namespace Chromodoris
 
         private void SetVoxelValuesForSlice(int primaryDimIdx)
         {
-            double getCoord(int idx, DimensionValues dimension)
-            {
-                return dimension.MinCoord + idx * dimension.StepSize;
-            }
+            double getCoord(int idx, DimensionValues dim) => dim.MinCoord + idx * dim.StepSize;
 
             // Lists specific to slice to avoid race conditions
             _voxelValues[primaryDimIdx] = new List<float>();
@@ -199,9 +196,9 @@ namespace Chromodoris
             }
         }
 
-        private Point3d OutputOrderedCoordsToPoint3d(double[] inputCoords)
+        private Point3d OutputOrderedCoordsToPoint3d(double[] coords)
         {
-            return (!_zyx) ? new Point3d(inputCoords[0], inputCoords[1], inputCoords[2]) : new Point3d(inputCoords[2], inputCoords[1], inputCoords[0]);
+            return (!_zyx) ? new Point3d(coords[0], coords[1], coords[2]) : new Point3d(coords[2], coords[1], coords[0]);
         }
 
         private float GetVoxelValue(Point3d voxelPt)
