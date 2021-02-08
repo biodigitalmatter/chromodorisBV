@@ -19,9 +19,6 @@ jobs:
         name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
 
-      #- name: Install GitVersion CLI tool for upload artifact steps
-      #  run: choco install GitVersion
-
       -
         name: Build solution
         run: msbuild chromodorisBV.sln /p:Configuration=Release -restore
