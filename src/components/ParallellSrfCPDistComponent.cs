@@ -8,14 +8,13 @@ using Rhino.Geometry;
 
 namespace Chromodoris
 {
-    public class AverageDistancesToPointcloudsComponent : GH_Component
+    public class ParallellSrfCPDistComponent : GH_Component
     {
         #region Fields
 
-        private int InSamplePtsIdx;
-        private int InPtCloudsIdx;
-        private int InNToAverageIdx;
-        private int OutAvgDistIdx;
+        private int _inSamplePtsIdx;
+        private int _inSrfIdx;
+        private int _outDistIdx;
 
         #endregion Fields
 
@@ -24,9 +23,9 @@ namespace Chromodoris
         /// <summary>
         /// Initializes a new instance of the AverageDistancesToPointclouds class.
         /// </summary>
-        public AverageDistancesToPointcloudsComponent()
-          : base("AverageDistancesToPointclouds", "AvgDistCP",
-                 "Finds shortest distances to point in N number of point clouds.", "ChromodorisBV", "Extra")
+        public ParallellSrfCPDistComponent()
+          : base("Parallell Srf Closest Point Distance", "ParSrfCPDist",
+                 "Find the distance to the closest point on surface, in parallell", "ChromodorisBV", "Extra")
         {
         }
 
@@ -39,8 +38,7 @@ namespace Chromodoris
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.
         /// </summary>
-        public override Guid ComponentGuid => new Guid("D651E611-871B-436D-A987-3E401CB6B2AF");
-
+        public override Guid ComponentGuid => new Guid("35EF6DCE-F540-40EC-99BB-6C32A75BCE89");
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
@@ -65,9 +63,8 @@ namespace Chromodoris
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            InSamplePtsIdx = pManager.AddPointParameter("Search points", "P", "Points to search from", GH_ParamAccess.list);
-            InPtCloudsIdx = pManager.AddPointParameter("Pointclouds", "C", "Pointclouds to search", GH_ParamAccess.tree);
-            InNToAverageIdx = pManager.AddIntegerParameter("Distances", "ND", "Number of distances to average", GH_ParamAccess.item, 2);
+            _inSamplePtsIdx = pManager.AddPointParameter("Points", "P", "Sample point", GH_ParamAccess.list);
+            _inSrfIdx = pManager.AddSurfaceParameter("Surface", "S", "Base surface.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -75,7 +72,7 @@ namespace Chromodoris
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            OutAvgDistIdx = pManager.AddNumberParameter("AvgDist", "D", "Average distance", GH_ParamAccess.list);
+            _outDistIdx = pManager.AddNumberParameter("Distance", "D", "Distance between sample point and closest point on surface.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -84,29 +81,23 @@ namespace Chromodoris
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            var searchPts = new List<Point3d>();
-            var nToAverage = 0;
+            var pts = new List<Point3d>();
+            Surface srf = null;
 
-            if (!DA.GetDataTree(InPtCloudsIdx, out GH_Structure<GH_Point> ptCloudTree))
+            if (!DA.GetDataList(_inSamplePtsIdx, pts))
             {
                 return;
             }
 
-            if (ptCloudTree.PathCount < 2)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Need more than one set of clouds to average results.");
-            }
-
-            if (!DA.GetDataList(InSamplePtsIdx, searchPts))
+            if (!DA.GetData(_inSrfIdx, ref srf))
             {
                 return;
             }
 
-            DA.GetData(InNToAverageIdx, ref nToAverage);
 
-            var averageClass = new AverageDistanceToPointclouds(searchPts, ptCloudTree, nToAverage);
+            var parSrfDistCls = new ParallellSrfCPDist(pts, srf, false);
 
-            DA.SetDataList(OutAvgDistIdx, averageClass.ComputeMultiThreaded());
+            DA.SetDataList(_outDistIdx, parSrfDistCls.ComputeMultiThreaded());
         }
 
         #endregion Methods

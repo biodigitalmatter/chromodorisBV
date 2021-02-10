@@ -38,6 +38,7 @@
         <Compile Include="components\*.cs" />
         <Compile Include="isosurfacing\*.cs" />
         <Compile Include="mesh\*.cs" />
+        <Compile Include="speedups\*.cs" />
         <Compile Include="Properties\Resources.Designer.cs">
             <AutoGen>True</AutoGen>
             <DesignTime>True</DesignTime>
