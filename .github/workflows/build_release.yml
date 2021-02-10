@@ -6,9 +6,6 @@ jobs:
   build_release:
     name: Build and release
     runs-on: windows-latest
-    env:
-      ContinuousIntegrationBuild: true
-      
 
     steps:
       -
@@ -23,7 +20,9 @@ jobs:
 
       -
         name: Build solution
-        run: msbuild /p:Configuration=Release -restore
+        run: |
+          msbuild /t:restore /p:RestoreLockedMode=true
+          msbuild /p:Configuration=Release
 
       -
         id: get-semver

@@ -54,7 +54,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Grasshopper" Version="6.32.*" PrivateAssets="all" />
+        <PackageReference Include="Grasshopper" Version="6.32.*" IncludeAssets="build;compile" />
         <PackageReference Include="KDSharp.KDTree" Version="0.9.*" />
     </ItemGroup>
     <ItemGroup Label="Includes">
