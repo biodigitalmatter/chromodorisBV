@@ -6,7 +6,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
-namespace Chromodoris.components
+namespace Chromodoris
 {
     public class AverageDistancesToPointcloudsComponent : GH_Component
     {

@@ -1,29 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProductVersion>8.0.30703</ProductVersion>
-        <SchemaVersion>2.0</SchemaVersion>
+        <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+        <Configuration Condition ="'$(Configuration)' == ''">Debug</Configuration>
+        <Platform Condition ="'$(Platform)' == ''">AnyCPU</Platform>
         <ProjectGuid>{C5F5D987-3B38-4761-8537-C8F978D31733}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>Chromodoris</RootNamespace>
-        <AssemblyName>ChromodorisBV</AssemblyName>
-        <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-        <FileAlignment>512</FileAlignment>
-        <IsWebBootstrapper>false</IsWebBootstrapper>
         <OutputPath>..\artifacts\</OutputPath>
-        <Prefer32Bit>false</Prefer32Bit>
-        <ErrorReport>prompt</ErrorReport>
-        <StartProgram>C:\Program Files\Rhinoceros 6 (64-bit)\System\Rhino.exe</StartProgram>
         <StartAction>Program</StartAction>
-        <Configuration>
-            <Runtime>
-                <gcAllowVeryLargeObjects enabled="true" />
-            </Runtime>
-            <Startup>
-                <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.5.2" />
-            </Startup>
-        </Configuration>
+        <StartProgram>C:\Program Files\Rhinoceros 6 (64-bit)\System\Rhino.exe</StartProgram>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DebugSymbols>true</DebugSymbols>
@@ -38,7 +25,7 @@
         <WarningLevel>2</WarningLevel>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
-    <ItemGroup>
+    <ItemGroup Label="References">
         <Reference Include="KDTree, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
             <HintPath>lib\KDTree.dll</HintPath>
@@ -46,36 +33,16 @@
         <Reference Include="System" />
         <Reference Include="System.Drawing" />
     </ItemGroup>
-    <ItemGroup>
+    <ItemGroup Label="Compile">
         <Compile Include="ChromodorisBVInfo.cs" />
-        <Compile Include="components\AverageDistancesToPointcloudsComponent.cs" />
-        <Compile Include="components\CurvatureApproximationComponent.cs" />
-        <Compile Include="components\IsoSurfaceFromListComponent.cs" />
-        <Compile Include="components\MeshPipeComponent.cs" />
-        <Compile Include="components\MeshLoftComponent.cs" />
-        <Compile Include="components\QuickSmoothComponent.cs" />
-        <Compile Include="components\DraftAngleAnalysisComponent.cs" />
-        <Compile Include="components\CloseVoxelGridComponent.cs" />
-        <Compile Include="components\VoxelSampleCustomComponent.cs" />
-        <Compile Include="isosurfacing\AverageDistanceToPointclouds.cs" />
-        <Compile Include="isosurfacing\KDTreePtCloud.cs" />
-        <Compile Include="isosurfacing\VoxelSamplerDual.cs" />
-        <Compile Include="mesh\Conversion.cs" />
-        <Compile Include="mesh\CurvatureApproximation.cs" />
-        <Compile Include="isosurfacing\MarchingCubesIndex.cs" />
-        <Compile Include="isosurfacing\HashIsoSurface.cs" />
-        <Compile Include="isosurfacing\VolumetricSpace.cs" />
-        <Compile Include="components\IsoSurfaceComponent.cs" />
-        <Compile Include="mesh\Smoothing.cs" />
-        <Compile Include="components\VoxelSampleDualComponent.cs" />
+        <Compile Include="components\*.cs" />
+        <Compile Include="isosurfacing\*.cs" />
+        <Compile Include="mesh\*.cs" />
         <Compile Include="Properties\Resources.Designer.cs">
             <AutoGen>True</AutoGen>
             <DesignTime>True</DesignTime>
             <DependentUpon>Resources.resx</DependentUpon>
         </Compile>
-        <Compile Include="isosurfacing\VoxelSampler.cs" />
-        <Compile Include="components\VoxelSampleComponent.cs" />
-        <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Properties\Resources.resx">
@@ -89,29 +56,17 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Grasshopper">
-            <Version>6.32.20340.21001</Version>
-        </PackageReference>
+        <PackageReference Include="Grasshopper" Version="6.32.*" PrivateAssets="all" />
     </ItemGroup>
-    <ItemGroup>
+    <ItemGroup Label="Includes">
         <Content Include="lib\KDTree.dll" />
-        <None Include="Resources\Icons_Isosurface_Custom.png" />
-        <None Include="Resources\Icons_DraftAngle.png" />
-        <None Include="Resources\Icons_Chromodoris.png" />
-        <None Include="Resources\Icon_VoxelSample.png" />
-        <None Include="Resources\Icon_QuickSmooth.png" />
-        <None Include="Resources\Icon_MeshPipe.png" />
-        <None Include="Resources\Icon_MeshLoft.png" />
-        <None Include="Resources\Icon_Isosurface.png" />
-        <None Include="Resources\Icon_Curvature.png" />
-        <None Include="Resources\Icon_Close_Voxel_Grid.png" />
+        <None Include="Resources\*.png" />
     </ItemGroup>
-    <Target Name="AutoClean" BeforeTargets="PreBuildEvent">
-        <RemoveDir Directories="$(TargetDir)" />
-        <MakeDir Directories="$(TargetDir)" />
-    </Target>
-    <Target Name="GHA" AfterTargets="PostBuildEvent">
-        <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(TargetDir)$(TargetName).gha" />
-    </Target>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+    <Target Name="BeforeBuild" BeforeTargets="MakeDir">
+        <RemoveDir Directories="$(TargetDir)" />
+    </Target>
+    <Target Name="AfterBuild">
+        <Move SourceFiles="$(TargetPath)" DestinationFiles="$(TargetDir)$(TargetName).gha" />
+    </Target>
 </Project>
