@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: chromodorisBV_${{ env.SEMVER }}
-          path: artifacts/dist/*
+          path: artifacts/*
 
       -
         name: Check Tag
@@ -53,7 +53,7 @@ jobs:
         run: >
           7z a -tzip
           artifacts\dist\ChromodorisBV_$Env:SEMVER.zip
-          .\artifacts\dist\*
+          .\artifacts\*
 
       -
         name: Create release on semver tag
@@ -62,4 +62,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: artifacts/dist/*
+          files: artifacts/*
