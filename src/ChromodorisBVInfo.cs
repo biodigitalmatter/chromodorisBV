@@ -32,6 +32,8 @@ namespace Chromodoris
 {
     public class ChromodorisBVInfo : GH_AssemblyInfo
     {
+        #region Properties
+
         public override string Name
         {
             get
@@ -39,6 +41,7 @@ namespace Chromodoris
                 return "ChromodorisBV";
             }
         }
+
         public override Bitmap Icon
         {
             get
@@ -46,6 +49,7 @@ namespace Chromodoris
                 return Chromodoris.Properties.Resources.Icons_Chromodoris;
             }
         }
+
         public override string Description
         {
             get
@@ -54,6 +58,7 @@ namespace Chromodoris
                 return "A general purpose mesh library.";
             }
         }
+
         public override Guid Id
         {
             get
@@ -70,6 +75,7 @@ namespace Chromodoris
                 return "Anton Tetov Johansson";
             }
         }
+
         public override string AuthorContact
         {
             get
@@ -78,5 +84,7 @@ namespace Chromodoris
                 return "anton@tetov.se";
             }
         }
+
+        #endregion Properties
     }
 }

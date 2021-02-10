@@ -1,152 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug64</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{C5F5D987-3B38-4761-8537-C8F978D31733}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Chromodoris</RootNamespace>
-    <AssemblyName>ChromodorisBV</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\artifacts\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\artifacts\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>2</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
-    <PlatformTarget>x64</PlatformTarget>
-    <OutputPath>..\artifacts\</OutputPath>
-    <Prefer32Bit>false</Prefer32Bit>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <PlatformTarget>x64</PlatformTarget>
-    <OutputPath>..\artifacts\</OutputPath>
-    <Prefer32Bit>false</Prefer32Bit>
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-    <Optimize>true</Optimize>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="KDTree, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>lib\KDTree.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Drawing" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ChromodorisBVInfo.cs" />
-    <Compile Include="components\CurvatureApproximationComponent.cs" />
-    <Compile Include="components\IsoSurfaceFromListComponent.cs" />
-    <Compile Include="components\MeshPipeComponent.cs" />
-    <Compile Include="components\MeshLoftComponent.cs" />
-    <Compile Include="components\QuickSmoothComponent.cs" />
-    <Compile Include="components\DraftAngleAnalysisComponent.cs" />
-    <Compile Include="components\CloseVoxelGridComponent.cs" />
-    <Compile Include="components\VoxelSampleCustomComponent.cs" />
-    <Compile Include="isosurfacing\VoxelSamplerDual.cs" />
-    <Compile Include="mesh\Conversion.cs" />
-    <Compile Include="mesh\CurvatureApproximation.cs" />
-    <Compile Include="isosurfacing\MarchingCubesIndex.cs" />
-    <Compile Include="isosurfacing\HashIsoSurface.cs" />
-    <Compile Include="isosurfacing\VolumetricSpace.cs" />
-    <Compile Include="components\IsoSurfaceComponent.cs" />
-    <Compile Include="mesh\Smoothing.cs" />
-    <Compile Include="components\VoxelSampleDualComponent.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="isosurfacing\VoxelSampler.cs" />
-    <Compile Include="components\VoxelSampleComponent.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="GitVersion.MsBuild">
-      <Version>5.6.3</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Grasshopper">
-      <Version>6.32.20340.21001</Version>
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="lib\KDTree.dll" />
-    <None Include="Resources\Icons_Isosurface_Custom.png" />
-    <None Include="Resources\Icons_DraftAngle.png" />
-    <None Include="Resources\Icons_Chromodoris.png" />
-    <None Include="Resources\Icon_VoxelSample.png" />
-    <None Include="Resources\Icon_QuickSmooth.png" />
-    <None Include="Resources\Icon_MeshPipe.png" />
-    <None Include="Resources\Icon_MeshLoft.png" />
-    <None Include="Resources\Icon_Isosurface.png" />
-    <None Include="Resources\Icon_Curvature.png" />
-    <None Include="Resources\Icon_Close_Voxel_Grid.png" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetDir)*$(TargetExt)" $(TargetDir)dist\"
-move "$(TargetDir)dist\$(TargetFileName)" "$(TargetDir)dist\$(ProjectName).gha"</PostBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <FallbackCulture>en-US</FallbackCulture>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <StartProgram>C:\Program Files\Rhinoceros 5 (64-bit)\System\Rhino.exe</StartProgram>
-    <StartArguments>
-    </StartArguments>
-    <StartAction>Program</StartAction>
-    <Prefer32Bit>false</Prefer32Bit>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PreBuildEvent>rmdir /S /Q "$(OutDir)dist"
-mkdir "$(OutDir)dist"</PreBuildEvent>
-  </PropertyGroup>
+    <PropertyGroup>
+        <ProductVersion>8.0.30703</ProductVersion>
+        <SchemaVersion>2.0</SchemaVersion>
+        <ProjectGuid>{C5F5D987-3B38-4761-8537-C8F978D31733}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>Chromodoris</RootNamespace>
+        <AssemblyName>ChromodorisBV</AssemblyName>
+        <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <IsWebBootstrapper>false</IsWebBootstrapper>
+        <OutputPath>..\artifacts\</OutputPath>
+        <Prefer32Bit>false</Prefer32Bit>
+        <ErrorReport>prompt</ErrorReport>
+        <StartProgram>C:\Program Files\Rhinoceros 6 (64-bit)\System\Rhino.exe</StartProgram>
+        <StartAction>Program</StartAction>
+        <Configuration>
+            <Runtime>
+                <gcAllowVeryLargeObjects enabled="true" />
+            </Runtime>
+            <Startup>
+                <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.5.2" />
+            </Startup>
+        </Configuration>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <DebugType>none</DebugType>
+        <Optimize>true</Optimize>
+        <WarningLevel>2</WarningLevel>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="KDTree, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+            <SpecificVersion>False</SpecificVersion>
+            <HintPath>lib\KDTree.dll</HintPath>
+        </Reference>
+        <Reference Include="System" />
+        <Reference Include="System.Drawing" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="ChromodorisBVInfo.cs" />
+        <Compile Include="components\AverageDistancesToPointcloudsComponent.cs" />
+        <Compile Include="components\CurvatureApproximationComponent.cs" />
+        <Compile Include="components\IsoSurfaceFromListComponent.cs" />
+        <Compile Include="components\MeshPipeComponent.cs" />
+        <Compile Include="components\MeshLoftComponent.cs" />
+        <Compile Include="components\QuickSmoothComponent.cs" />
+        <Compile Include="components\DraftAngleAnalysisComponent.cs" />
+        <Compile Include="components\CloseVoxelGridComponent.cs" />
+        <Compile Include="components\VoxelSampleCustomComponent.cs" />
+        <Compile Include="isosurfacing\AverageDistanceToPointclouds.cs" />
+        <Compile Include="isosurfacing\KDTreePtCloud.cs" />
+        <Compile Include="isosurfacing\VoxelSamplerDual.cs" />
+        <Compile Include="mesh\Conversion.cs" />
+        <Compile Include="mesh\CurvatureApproximation.cs" />
+        <Compile Include="isosurfacing\MarchingCubesIndex.cs" />
+        <Compile Include="isosurfacing\HashIsoSurface.cs" />
+        <Compile Include="isosurfacing\VolumetricSpace.cs" />
+        <Compile Include="components\IsoSurfaceComponent.cs" />
+        <Compile Include="mesh\Smoothing.cs" />
+        <Compile Include="components\VoxelSampleDualComponent.cs" />
+        <Compile Include="Properties\Resources.Designer.cs">
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+            <DependentUpon>Resources.resx</DependentUpon>
+        </Compile>
+        <Compile Include="isosurfacing\VoxelSampler.cs" />
+        <Compile Include="components\VoxelSampleComponent.cs" />
+        <Compile Include="Properties\AssemblyInfo.cs" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Properties\Resources.resx">
+            <Generator>PublicResXFileCodeGenerator</Generator>
+            <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="GitVersion.MsBuild">
+            <Version>5.6.6</Version>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Grasshopper">
+            <Version>6.32.20340.21001</Version>
+        </PackageReference>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="lib\KDTree.dll" />
+        <None Include="Resources\Icons_Isosurface_Custom.png" />
+        <None Include="Resources\Icons_DraftAngle.png" />
+        <None Include="Resources\Icons_Chromodoris.png" />
+        <None Include="Resources\Icon_VoxelSample.png" />
+        <None Include="Resources\Icon_QuickSmooth.png" />
+        <None Include="Resources\Icon_MeshPipe.png" />
+        <None Include="Resources\Icon_MeshLoft.png" />
+        <None Include="Resources\Icon_Isosurface.png" />
+        <None Include="Resources\Icon_Curvature.png" />
+        <None Include="Resources\Icon_Close_Voxel_Grid.png" />
+    </ItemGroup>
+    <Target Name="AutoClean" BeforeTargets="PreBuildEvent">
+        <RemoveDir Directories="$(TargetDir)" />
+        <MakeDir Directories="$(TargetDir)" />
+    </Target>
+    <Target Name="GHA" AfterTargets="PostBuildEvent">
+        <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(TargetDir)$(TargetName).gha" />
+    </Target>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
