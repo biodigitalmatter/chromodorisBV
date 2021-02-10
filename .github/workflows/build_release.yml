@@ -5,8 +5,10 @@ on: [push]
 jobs:
   build_release:
     name: Build and release
-
     runs-on: windows-latest
+    env:
+      ContinuousIntegrationBuild: true
+      
 
     steps:
       -
@@ -52,8 +54,9 @@ jobs:
         if: steps.check-tag.outputs.match == 'true'
         run: >
           7z a -tzip
-          artifacts\dist\ChromodorisBV_$Env:SEMVER.zip
+          artifacts\ChromodorisBV_$Env:SEMVER.zip
           .\artifacts\*
+          -x *.pdb
 
       -
         name: Create release on semver tag
@@ -62,4 +65,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: artifacts/*
+          files: |
+            artifacts/*.gha
+            artifacts/*.dll
+            artifacts/*.zip

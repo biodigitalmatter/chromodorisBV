@@ -11,6 +11,8 @@
         <OutputPath>..\artifacts\</OutputPath>
         <StartAction>Program</StartAction>
         <StartProgram>C:\Program Files\Rhinoceros 6 (64-bit)\System\Rhino.exe</StartProgram>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DebugSymbols>true</DebugSymbols>
@@ -26,10 +28,6 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
     <ItemGroup Label="References">
-        <Reference Include="KDTree, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-            <SpecificVersion>False</SpecificVersion>
-            <HintPath>lib\KDTree.dll</HintPath>
-        </Reference>
         <Reference Include="System" />
         <Reference Include="System.Drawing" />
     </ItemGroup>
@@ -57,9 +55,9 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Grasshopper" Version="6.32.*" PrivateAssets="all" />
+        <PackageReference Include="KDSharp.KDTree" Version="0.9.*" />
     </ItemGroup>
     <ItemGroup Label="Includes">
-        <Content Include="lib\KDTree.dll" />
         <None Include="Resources\*.png" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
