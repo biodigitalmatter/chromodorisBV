@@ -1,72 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <PropertyGroup>
-        <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-        <Configuration Condition ="'$(Configuration)' == ''">Debug</Configuration>
-        <Platform Condition ="'$(Platform)' == ''">AnyCPU</Platform>
-        <ProjectGuid>{C5F5D987-3B38-4761-8537-C8F978D31733}</ProjectGuid>
-        <OutputType>Library</OutputType>
-        <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>Chromodoris</RootNamespace>
-        <OutputPath>..\artifacts\</OutputPath>
-        <StartAction>Program</StartAction>
-        <StartProgram>C:\Program Files\Rhinoceros 6 (64-bit)\System\Rhino.exe</StartProgram>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <DebugSymbols>true</DebugSymbols>
-        <DebugType>full</DebugType>
-        <Optimize>false</Optimize>
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <DebugType>none</DebugType>
-        <Optimize>true</Optimize>
-        <WarningLevel>2</WarningLevel>
-        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    </PropertyGroup>
-    <ItemGroup Label="References">
-        <Reference Include="KDTree, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-            <SpecificVersion>False</SpecificVersion>
-            <HintPath>lib\KDTree.dll</HintPath>
-        </Reference>
-        <Reference Include="System" />
-        <Reference Include="System.Drawing" />
-    </ItemGroup>
-    <ItemGroup Label="Compile">
-        <Compile Include="ChromodorisBVInfo.cs" />
-        <Compile Include="components\*.cs" />
-        <Compile Include="isosurfacing\*.cs" />
-        <Compile Include="mesh\*.cs" />
-        <Compile Include="Properties\Resources.Designer.cs">
-            <AutoGen>True</AutoGen>
-            <DesignTime>True</DesignTime>
-            <DependentUpon>Resources.resx</DependentUpon>
-        </Compile>
-    </ItemGroup>
-    <ItemGroup>
-        <EmbeddedResource Include="Properties\Resources.resx">
-            <Generator>PublicResXFileCodeGenerator</Generator>
-            <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-        </EmbeddedResource>
-    </ItemGroup>
-    <ItemGroup>
-        <PackageReference Include="GitVersion.MsBuild">
-            <Version>5.6.6</Version>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-        <PackageReference Include="Grasshopper" Version="6.32.*" PrivateAssets="all" />
-    </ItemGroup>
-    <ItemGroup Label="Includes">
-        <Content Include="lib\KDTree.dll" />
-        <None Include="Resources\*.png" />
-    </ItemGroup>
-    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-    <Target Name="BeforeBuild" BeforeTargets="MakeDir">
-        <RemoveDir Directories="$(TargetDir)" />
-    </Target>
-    <Target Name="AfterBuild">
-        <Move SourceFiles="$(TargetPath)" DestinationFiles="$(TargetDir)$(TargetName).gha" />
-    </Target>
+  <PropertyGroup>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{C5F5D987-3B38-4761-8537-C8F978D31733}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Chromodoris</RootNamespace>
+    <OutputPath>..\artifacts\</OutputPath>
+    <StartAction>Program</StartAction>
+    <StartProgram>C:\Program Files\Rhinoceros 6 (64-bit)\System\Rhino.exe</StartProgram>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <WarningLevel>2</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup Label="References">
+    <Reference Include="KDTree, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\KDTree.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+  <ItemGroup Label="Compile">
+    <Compile Include="ChromodorisBVInfo.cs" />
+    <Compile Include="components\*.cs" />
+    <Compile Include="isosurfacing\*.cs" />
+    <Compile Include="mesh\*.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="GitVersion.MsBuild">
+      <Version>5.6.6</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Grasshopper" Version="6.32.*" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup Label="Includes">
+    <Content Include="lib\KDTree.dll" />
+    <None Include="Resources\*.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="BeforeBuild" BeforeTargets="MakeDir">
+    <RemoveDir Directories="$(TargetDir)" />
+  </Target>
+  <Target Name="AfterBuild">
+    <Move SourceFiles="$(TargetPath)" DestinationFiles="$(TargetDir)$(TargetName).gha" />
+  </Target>
 </Project>

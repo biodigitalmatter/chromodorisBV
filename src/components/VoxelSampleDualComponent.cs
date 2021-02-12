@@ -28,6 +28,7 @@ using System;
 using System.Collections.Generic;
 
 using Grasshopper.Kernel;
+
 using Rhino.Geometry;
 
 namespace Chromodoris
@@ -63,8 +64,6 @@ namespace Chromodoris
 
         #endregion Constructors
 
-
-
         #region Properties
 
         /// <summary>
@@ -75,17 +74,10 @@ namespace Chromodoris
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                return Properties.Resources.Icons_Isosurface_Custom;
-            }
-        }
+        protected override System.Drawing.Bitmap Icon => Properties.Resources.Icons_Isosurface_Custom;
 
+        public override bool IsPreviewCapable => false;
         #endregion Properties
-
-
 
         #region Methods
 
@@ -94,13 +86,48 @@ namespace Chromodoris
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            InP1Idx = pManager.AddPointParameter("Pointcloud 1", "P1", "First cloud to sample.", GH_ParamAccess.list);
-            InP2Idx = pManager.AddPointParameter("Pointcloud 2", "P2", "Second cloud to sample.", GH_ParamAccess.list);
-            InBIdx = pManager.AddBoxParameter("Box", "B", "The box representing the voxel grid.", GH_ParamAccess.item);
-            InXIdx = pManager.AddIntegerParameter("X Resolution", "X", "The number of grid cells in the X-direction.", GH_ParamAccess.item);
-            InYIdx = pManager.AddIntegerParameter("Y Resolution", "Y", "The number of grid cells in the Y-direction.", GH_ParamAccess.item);
-            InZIdx = pManager.AddIntegerParameter("Z Resolution", "Z", "The number of grid cells in the Z-direction.", GH_ParamAccess.item);
-            InZYXIdx = pManager.AddBooleanParameter("ZYX output", "ZYX", "Order output first by Z dimension, then Y and last X. Defaults to True.", GH_ParamAccess.item, false);
+            InP1Idx = pManager.AddPointParameter(
+                "Pointcloud 1",
+                "P1",
+                "First cloud to sample.",
+                GH_ParamAccess.list);
+
+            InP2Idx = pManager.AddPointParameter(
+                "Pointcloud 2",
+                "P2",
+                "Second cloud to sample.",
+                GH_ParamAccess.list);
+
+            InBIdx = pManager.AddBoxParameter(
+                "Box",
+                "B",
+                "The box representing the voxel grid.",
+                GH_ParamAccess.item);
+
+            InXIdx = pManager.AddIntegerParameter(
+                "X Resolution",
+                "X",
+                "The number of grid cells in the X-direction.",
+                GH_ParamAccess.item);
+
+            InYIdx = pManager.AddIntegerParameter(
+                "Y Resolution",
+                "Y",
+                "The number of grid cells in the Y-direction.",
+                GH_ParamAccess.item);
+
+            InZIdx = pManager.AddIntegerParameter(
+                "Z Resolution",
+                "Z",
+                "The number of grid cells in the Z-direction.",
+                GH_ParamAccess.item);
+
+            InZYXIdx = pManager.AddBooleanParameter(
+                "ZYX output",
+                "ZYX",
+                "Order output first by Z dimension, then Y and last X. Defaults to True.",
+                GH_ParamAccess.item,
+                false);
         }
 
         /// <summary>
@@ -108,9 +135,23 @@ namespace Chromodoris
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            OutBIdx = pManager.AddBoxParameter("Box", "B", "The generated box representing voxel grid.", GH_ParamAccess.item);
-            OutDIdx = pManager.AddGenericParameter("Voxel Data 1", "D", "Voxel data stored in an array.", GH_ParamAccess.list);
-            OutPIdx = pManager.AddPointParameter("Voxel center points", "P", "Voxel center points.", GH_ParamAccess.list);
+            OutBIdx = pManager.AddBoxParameter(
+                "Box",
+                "B",
+                "The generated box representing voxel grid.",
+                GH_ParamAccess.item);
+
+            OutDIdx = pManager.AddGenericParameter(
+                "Voxel Data 1",
+                "D",
+                "Voxel data stored in an array.",
+                GH_ParamAccess.list);
+
+            OutPIdx = pManager.AddPointParameter(
+                "Voxel center points",
+                "P",
+                "Voxel center points.",
+                GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -128,35 +169,24 @@ namespace Chromodoris
             var zyx = true;
 
             if (!DA.GetDataList(InP1Idx, pointCloud1))
-            {
                 return;
-            }
 
             if (!DA.GetDataList(InP2Idx, pointCloud2))
-            {
                 return;
-            }
 
             if (!DA.GetData(InBIdx, ref box))
-            {
                 return;
-            }
 
             if (!DA.GetData(InXIdx, ref xr))
-            {
                 return;
-            }
 
             if (!DA.GetData(InYIdx, ref yr))
-            {
                 return;
-            }
 
             if (!DA.GetData(InZIdx, ref zr))
-            {
                 return;
-            }
-            DA.GetData(InZYXIdx, ref zyx);
+
+            _ = DA.GetData(InZYXIdx, ref zyx);
 
             var sampler = new VoxelSamplerDual(pointCloud1, pointCloud2, box, xr, yr, zr, zyx: zyx);
             sampler.ExecuteMultiThreaded();

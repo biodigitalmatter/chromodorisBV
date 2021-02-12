@@ -27,6 +27,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Rhino.Geometry;
 
 namespace Chromodoris
@@ -90,8 +91,6 @@ namespace Chromodoris
 
         #endregion Constructors
 
-
-
         #region Properties
 
         internal Box BBox { get; }
@@ -100,8 +99,6 @@ namespace Chromodoris
         internal List<float> VoxelValuesList { get => FlattenArrayOfList(_voxelValues); }
 
         #endregion Properties
-
-
 
         #region Methods
 
