@@ -24,7 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using KDTree;
+using KDSharp.KDTree;
 using Rhino.Geometry;
 
 namespace Chromodoris

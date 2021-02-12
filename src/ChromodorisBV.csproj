@@ -11,8 +11,8 @@
     <OutputPath>..\artifacts\</OutputPath>
     <StartAction>Program</StartAction>
     <StartProgram>C:\Program Files\Rhinoceros 6 (64-bit)\System\Rhino.exe</StartProgram>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -20,16 +20,13 @@
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <WarningLevel>2</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup Label="References">
-    <Reference Include="KDTree, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>lib\KDTree.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
   </ItemGroup>
@@ -56,10 +53,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Grasshopper" Version="6.32.*" PrivateAssets="all" />
+    <PackageReference Include="Grasshopper" Version="6.32.*" IncludeAssets="build;compile" />
+    <PackageReference Include="KDSharp.KDTree" Version="0.9.*" />
   </ItemGroup>
   <ItemGroup Label="Includes">
-    <Content Include="lib\KDTree.dll" />
     <None Include="Resources\*.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

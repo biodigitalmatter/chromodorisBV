@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "dependencies": {
+    ".NETFramework,Version=v4.5.2": {
+      "GitVersion.MsBuild": {
+        "type": "Direct",
+        "requested": "[5.6.6, )",
+        "resolved": "5.6.6",
+        "contentHash": "4oGQwmZwFW8qOQV9CexDLGCU1iHGSjkyX62BL3JDesrxSDfZcQczb+qRSGkHS/32JgSH4mcce/KrdPZiItXunw=="
+      },
+      "Grasshopper": {
+        "type": "Direct",
+        "requested": "[6.32.*, )",
+        "resolved": "6.32.20340.21001",
+        "contentHash": "6waJFjdUm7VmzjP5Oq6Sc6CDJTNc0imy95/GKcByljpdaJboVpD0ZKsE8Y3IzmSa41/iNklqpsVHmGoAGfpaUg==",
+        "dependencies": {
+          "RhinoCommon": "[6.32.20340.21001]"
+        }
+      },
+      "KDSharp.KDTree": {
+        "type": "Direct",
+        "requested": "[0.9.*, )",
+        "resolved": "0.9.28",
+        "contentHash": "K7w9ogCxRRcJCFjzwWAzx1R3+OQrAn8DOuv3+1S4VAAuqHuaPzDARINfE0KxVD5km7lGpyAZqDe4G2lxCxCqIA=="
+      },
+      "RhinoCommon": {
+        "type": "Transitive",
+        "resolved": "6.32.20340.21001",
+        "contentHash": "oQmaBkZAY3VrH6svqebsmKnrlnbXfkDCOa+iJEZuzFyJ7SgxDc168DPrEOs9raEaHEFQtUfMs5fwCj4XXrkiHQ=="
+      }
+    },
+    ".NETFramework,Version=v4.5.2/win": {},
+    ".NETFramework,Version=v4.5.2/win-x64": {},
+    ".NETFramework,Version=v4.5.2/win-x86": {}
+  }
+}
