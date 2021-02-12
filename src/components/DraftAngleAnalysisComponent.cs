@@ -1,5 +1,5 @@
 /*
- *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____ 
+ *      ___  _  _  ____   __   _  _   __  ____   __  ____  __  ____
  *     / __)/ )( \(  _ \ /  \ ( \/ ) /  \(    \ /  \(  _ \(  )/ ___)
  *    ( (__ ) __ ( )   /(  O )/ \/ \(  O )) D ((  O ))   / )( \___ \
  *     \___)\_)(_/(__\_) \__/ \_)(_/ \__/(____/ \__/(__\_)(__)(____/
@@ -23,8 +23,10 @@
 
 using System;
 using System.Drawing;
+
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+
 using Rhino.Geometry;
 
 namespace Chromodoris

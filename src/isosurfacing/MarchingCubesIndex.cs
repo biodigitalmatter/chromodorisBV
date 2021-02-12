@@ -1,4 +1,4 @@
-﻿/*
+/*
 * This algorithm is based on Karsten Schmidt's 'toxiclibs' isosurfacer in Java
 * https://bitbucket.org/postspectacular/toxiclibs
 * Released under the Lesser GPL (LGPL 2.1)
