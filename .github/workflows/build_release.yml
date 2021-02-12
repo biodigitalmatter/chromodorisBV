@@ -55,7 +55,7 @@ jobs:
           7z a -tzip
           artifacts\ChromodorisBV_$Env:SEMVER.zip
           .\artifacts\*
-          -x *.pdb
+          "-x!*.pdb"
 
       -
         name: Create release on semver tag
