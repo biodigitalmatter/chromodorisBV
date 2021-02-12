@@ -23,3 +23,7 @@ dotnet_style_require_accessibility_modifiers = omit_if_default
 
 # IDE0058: Remove unnecessary expression value
 csharp_style_unused_value_expression_statement_preference = discard_variable
+
+# .NET formatting rules
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = true
