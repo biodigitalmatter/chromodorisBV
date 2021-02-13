@@ -60,7 +60,8 @@ jobs:
       -
         name: Create release on semver tag
         if: steps.check-tag.outputs.match == 'true'
-        uses: softprops/action-gh-release@v1
+        # softprops/action-gh-release v0.1.5
+        uses: softprops/action-gh-release@b7e450da2a4b4cb4bfbae528f788167786cfcedf
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
