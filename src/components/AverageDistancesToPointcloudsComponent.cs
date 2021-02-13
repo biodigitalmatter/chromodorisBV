@@ -25,7 +25,6 @@
  */
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,14 +37,14 @@ using Rhino.Geometry;
 
 namespace Chromodoris
 {
-    public class AverageDistancesToPointcloudsComponent : GH_Component
+    public class AverageDistancesToPointcloudsComponent : GH_TaskCapableComponent<AverageDistancesToPointcloudsComponent.SolveResults>
     {
         #region Fields
 
-        private int InSamplePtsIdx;
-        private int InPtCloudsIdx;
-        private int InNToAverageIdx;
-        private int OutAvgDistIdx;
+        private int _inSearchPtsIdx;
+        private int _inPtCloudsIdx;
+        private int _inNDistsToAvgIdx;
+        private int _outAvgDistsIdx;
 
         #endregion Fields
 
@@ -89,20 +88,20 @@ namespace Chromodoris
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            InSamplePtsIdx = pManager.AddPointParameter(
+            _inSearchPtsIdx = pManager.AddPointParameter(
                 "Search points",
                 "P",
                 "Points to search from",
-                GH_ParamAccess.list);
+                GH_ParamAccess.item);
 
-            InPtCloudsIdx = pManager.AddPointParameter(
+            _inPtCloudsIdx = pManager.AddPointParameter(
                 "Pointclouds",
                 "C",
                 "Pointclouds to search",
                 GH_ParamAccess.tree);
 
-            InNToAverageIdx = pManager.AddIntegerParameter(
-                "Distances",
+            _inNDistsToAvgIdx = pManager.AddIntegerParameter(
+                "Number of distances",
                 "ND",
                 "Number of distances to average",
                 GH_ParamAccess.item,
@@ -114,11 +113,11 @@ namespace Chromodoris
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            OutAvgDistIdx = pManager.AddNumberParameter(
+            _outAvgDistsIdx = pManager.AddNumberParameter(
                 "AvgDist",
                 "D",
                 "Average distance",
-                GH_ParamAccess.list);
+                GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -127,66 +126,70 @@ namespace Chromodoris
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            var searchPts = new List<Point3d>();
-            var nToAverage = 0;
+            if (InPreSolve)
+            {
+                // First pass; collect data and construct tasks
+                Point3d searchPt = new Point3d();
 
-            if (!DA.GetDataList(InSamplePtsIdx, searchPts))
+                var nDistsToAvg = 0;
+                _ = DA.GetData(_inNDistsToAvgIdx, ref nDistsToAvg);
+
+                Task<SolveResults> tsk = null;
+                if (DA.GetData(_inSearchPtsIdx, ref searchPt)
+                    && DA.GetDataTree(_inPtCloudsIdx, out GH_Structure<GH_Point> ptCloudDataTree))
+                {
+                    var ptCloudKDTrees = PtCloudDataTreesToKDTrees(ptCloudDataTree);
+                    tsk = Task.Run(() => ComputeAvgDist(searchPt, ptCloudKDTrees, nDistsToAvg), CancelToken);
+                }
+                TaskList.Add(tsk);
+
                 return;
+            }
 
-            if (!DA.GetDataTree(InPtCloudsIdx, out GH_Structure<GH_Point> ptCloudDataTree))
-                return;
+            if (!GetSolveResults(DA, out SolveResults results))
+            {
+                // Compute right here, right now.
+                // 1. Collect
+                Point3d searchPt = new Point3d();
+                if (!DA.GetData(_inSearchPtsIdx, ref searchPt)) { return; }
 
-            var ptCloudKDTrees = DataTreePtCloudToKDTree(ptCloudDataTree);
+                var nDistsToAvg = 0;
+                _ = DA.GetData(_inNDistsToAvgIdx, ref nDistsToAvg);
 
-            if (ptCloudKDTrees.Length < 2)
-                AddRuntimeMessage(
-                    GH_RuntimeMessageLevel.Error,
-                    "Need more than one set of clouds to average results.");
+                if (!DA.GetDataTree(_inPtCloudsIdx, out GH_Structure<GH_Point> ptCloudDataTree)) { return; }
+                var ptCloudKDTrees = PtCloudDataTreesToKDTrees(ptCloudDataTree);
 
-            _ = DA.GetData(InNToAverageIdx, ref nToAverage);
+                // 2. Compute
+                results = ComputeAvgDist(searchPt, ptCloudKDTrees, nDistsToAvg);
+            }
 
-            if (nToAverage < 0 || nToAverage > ptCloudKDTrees.Length)
-                AddRuntimeMessage(
-                    GH_RuntimeMessageLevel.Error,
-                    "Number of distances needs to more than 0 and less than the length of Pointclouds (C).");
+            // 3. Set
+            if (results != null)
+                _ = DA.SetData(_outAvgDistsIdx, results.Value);
 
-            _ = DA.SetDataList(
-                OutAvgDistIdx,
-                GetAverageDistances(searchPts.ToArray(), ptCloudKDTrees, nToAverage));
         }
 
-        private List<double> GetAverageDistances(
-            Point3d[] searchPts,
+        static SolveResults ComputeAvgDist(
+            Point3d searchPt,
             KDTreePtCloud[] ptClouds,
             int nToAveragePerDistance)
         {
-            var averageDistances = new double[searchPts.Length];
+            var result = new SolveResults();
+            var allDists = new List<double>(ptClouds.Length);
 
-            // Partitions are static and created before run, it's just a number
-            // of ranges based on number of cores
-            var partitioner = Partitioner.Create(0, searchPts.Length);
-
-            _ = Parallel.ForEach(partitioner, (range, loopstate) =>
+            foreach (KDTreePtCloud tree in ptClouds)
             {
-                for (int i = range.Item1; i < range.Item2; i++)
-                {
-                    var allDists = new List<double>();
+                allDists.Add(tree.GetClosestPtDistance(searchPt));
+            }
+            allDists.Sort();
 
-                    foreach (KDTreePtCloud tree in ptClouds)
-                    {
-                        allDists.Add(tree.GetClosestPtDistance(searchPts[i]));
-                    }
-                    allDists.Sort();
+            List<double> distsToAverage = allDists.GetRange(0, nToAveragePerDistance);
+            result.Value = distsToAverage.Average();
 
-                    List<double> distsToAverage = allDists.GetRange(0, nToAveragePerDistance);
-                    averageDistances[i] = distsToAverage.Average();
-                }
-            });
-
-            return averageDistances.ToList();
+            return result;
         }
 
-        private static KDTreePtCloud[] DataTreePtCloudToKDTree(GH_Structure<GH_Point> dataTree)
+        static KDTreePtCloud[] PtCloudDataTreesToKDTrees(GH_Structure<GH_Point> dataTree)
         {
             var kdTrees = new KDTreePtCloud[dataTree.PathCount];
 
@@ -201,5 +204,11 @@ namespace Chromodoris
         }
 
         #endregion Methods
+
+        public class SolveResults
+        {
+            public double Value { get; set; }
+        }
+
     }
 }
