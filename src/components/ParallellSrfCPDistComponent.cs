@@ -83,9 +83,16 @@ namespace Chromodoris
             Surface srf = null;
             var pts = new List<Point3d>();
 
-            if (!DA.GetDataList(_inSamplePtsIdx, pts))
+            try
             {
-                return;
+                if (!DA.GetDataList(_inSamplePtsIdx, pts))
+                {
+                    return;
+                }
+            }
+            catch (System.OutOfMemoryException)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Too many points to access, out of memory error.");
             }
 
             if (!DA.GetData(_inSrfIdx, ref srf))
@@ -102,11 +109,7 @@ namespace Chromodoris
         {
             var dists = new double[solveData.Pts.Count];
 
-            // Load balance = True, based on the assumption that this operation's
-            // execution time varies.
-            // var partitioner = Partitioner.Create(Enumerable.Range(0, pts.Length).ToList(), true);
-
-            // Larger ranges to use be able top update thread specific u1 and v1.
+            // Static parts
             var partitioner = Partitioner.Create(0, solveData.Pts.Count);
 
             _ = Parallel.ForEach(partitioner, (range, loopstate) => ComputeRange(dists, solveData, range, loopstate));
@@ -120,14 +123,14 @@ namespace Chromodoris
             {
                 if (!solveData.Srf.ClosestPoint(solveData.Pts[i], out double u, out double v))
                 {
-                    // AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Closest point not found.");
                     loopstate.Break();
+                    throw new System.Exception("No point found on surface.");
                 }
                 resultList[i] = solveData.Pts[i].DistanceTo(solveData.Srf.PointAt(u, v));
             }
-            // GC.Collect(2, GCCollectionMode.Optimized);
         }
 
+        // TODO: This should be tested more to see if there's any impact.
         protected override void AfterSolveInstance() => GC.Collect();
 
         public readonly struct SolveData
