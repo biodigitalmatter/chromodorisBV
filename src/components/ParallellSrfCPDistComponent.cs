@@ -12,15 +12,9 @@ namespace Chromodoris
 {
     public class ParallellSrfCPDistComponent : GH_Component
     {
-        #region Fields
-
         private int _inSamplePtsIdx;
         private int _inSrfIdx;
         private int _outDistIdx;
-
-        #endregion Fields
-
-        #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the AverageDistancesToPointclouds class.
@@ -34,10 +28,6 @@ namespace Chromodoris
                 "Extra")
         {
         }
-
-        #endregion Constructors
-
-        #region Properties
 
         /// <summary>
         /// Gets the unique ID for this component. Do not change this ID after release.
@@ -54,9 +44,6 @@ namespace Chromodoris
         // return Resources.IconForThisComponent;
         protected override System.Drawing.Bitmap Icon => null;
 
-        #endregion Properties
-
-        #region Methods
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -93,47 +80,65 @@ namespace Chromodoris
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            var pts = new List<Point3d>();
             Surface srf = null;
+            var pts = new List<Point3d>();
 
             if (!DA.GetDataList(_inSamplePtsIdx, pts))
+            {
                 return;
-
-            var pts_array = pts.ToArray();
+            }
 
             if (!DA.GetData(_inSrfIdx, ref srf))
+            {
                 return;
+            }
 
-            _ = DA.SetDataList(_outDistIdx, GetDistances(pts_array, srf));
+            SolveData solveData = new SolveData(pts, srf);
+
+            _ = DA.SetDataList(_outDistIdx, GetDistances(solveData));
         }
 
-        internal List<double> GetDistances(Point3d[] pts, Surface srf)
+        private List<double> GetDistances(SolveData solveData)
         {
-            var dists = new double[pts.Length];
+            var dists = new double[solveData.Pts.Count];
 
             // Load balance = True, based on the assumption that this operation's
             // execution time varies.
             // var partitioner = Partitioner.Create(Enumerable.Range(0, pts.Length).ToList(), true);
 
             // Larger ranges to use be able top update thread specific u1 and v1.
-            var partitioner = Partitioner.Create(0, pts.Length);
+            var partitioner = Partitioner.Create(0, solveData.Pts.Count);
 
-            _ = Parallel.ForEach(partitioner, (range, loopstate) =>
-            {
-                for (int i = range.Item1; i < range.Item2; i++)
-                {
-                    if (!srf.ClosestPoint(pts[i], out double u, out double v))
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Closest point not found.");
-                        loopstate.Break();
-                    }
-                    dists[i] = pts[i].DistanceTo(srf.PointAt(u, v));
-                }
-            });
+            _ = Parallel.ForEach(partitioner, (range, loopstate) => ComputeRange(dists, solveData, range, loopstate));
 
             return dists.ToList();
         }
 
-        #endregion Methods
+        private static void ComputeRange(in double[] resultList, SolveData solveData, Tuple<int, int> range, ParallelLoopState loopstate)
+        {
+            for (int i = range.Item1; i < range.Item2; i++)
+            {
+                if (!solveData.Srf.ClosestPoint(solveData.Pts[i], out double u, out double v))
+                {
+                    // AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Closest point not found.");
+                    loopstate.Break();
+                }
+                resultList[i] = solveData.Pts[i].DistanceTo(solveData.Srf.PointAt(u, v));
+            }
+            // GC.Collect(2, GCCollectionMode.Optimized);
+        }
+
+        protected override void AfterSolveInstance() => GC.Collect();
+
+        public readonly struct SolveData
+        {
+            public List<Point3d> Pts { get; }
+            public Surface Srf { get; }
+            public SolveData(in List<Point3d> pts, in Surface srf)
+            {
+                Pts = pts;
+                Srf = srf;
+            }
+        }
     }
 }
