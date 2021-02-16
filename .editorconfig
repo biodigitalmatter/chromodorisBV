@@ -9,10 +9,13 @@ charset = utf-8
 [LICENSE]
 insert_final_newline = false
 
-[*.{yaml,yml,toml}]
+[*.{yaml,yml,toml,xml,html}]
 indent_size = 2
 
 [*.cs]
+
+# Used with dot-net format --fix-style -warn
+dotnet_diagnostic.IDE0005.severity = warning
 
 # IDE0007: Use 'var' instead of explicit type
 csharp_style_var_for_built_in_types = true
