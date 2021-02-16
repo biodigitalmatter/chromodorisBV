@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>x64</PlatformTarget>
     <ProjectGuid>{C5F5D987-3B38-4761-8537-C8F978D31733}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -11,7 +11,7 @@
     <RootNamespace>Chromodoris</RootNamespace>
     <OutputPath>..\artifacts\</OutputPath>
     <StartAction>Program</StartAction>
-    <StartProgram>C:\Program Files\Rhinoceros 6 (64-bit)\System\Rhino.exe</StartProgram>
+    <StartProgram>C:\Program Files\Rhinoceros 6\System\Rhino.exe</StartProgram>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
     <DebugSymbols>true</DebugSymbols>
