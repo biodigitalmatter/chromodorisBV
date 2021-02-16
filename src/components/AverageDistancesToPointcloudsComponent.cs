@@ -39,16 +39,10 @@ namespace Chromodoris
 {
     public class AverageDistancesToPointcloudsComponent : GH_TaskCapableComponent<AverageDistancesToPointcloudsComponent.SolveResults>
     {
-        #region Fields
-
         private int _inSearchPtsIdx;
         private int _inPtCloudsIdx;
         private int _inNDistsToAvgIdx;
         private int _outAvgDistsIdx;
-
-        #endregion Fields
-
-        #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the AverageDistancesToPointclouds class.
@@ -63,9 +57,6 @@ namespace Chromodoris
         {
         }
 
-        #endregion Constructors
-
-        #region Properties
         // Test if this speeds up component
         public override bool IsPreviewCapable => false;
 
@@ -78,10 +69,6 @@ namespace Chromodoris
         /// Provides an Icon for the component.
         /// </summary>
         protected override System.Drawing.Bitmap Icon => null;
-
-        #endregion Properties
-
-        #region Methods
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -166,10 +153,9 @@ namespace Chromodoris
             // 3. Set
             if (results != null)
                 _ = DA.SetData(_outAvgDistsIdx, results.Value);
-
         }
 
-        static SolveResults ComputeAvgDist(
+        private static SolveResults ComputeAvgDist(
             Point3d searchPt,
             KDTreePtCloud[] ptClouds,
             int nToAveragePerDistance)
@@ -189,26 +175,22 @@ namespace Chromodoris
             return result;
         }
 
-        static KDTreePtCloud[] PtCloudDataTreesToKDTrees(GH_Structure<GH_Point> dataTree)
+        private static KDTreePtCloud[] PtCloudDataTreesToKDTrees(GH_Structure<GH_Point> dataTree)
         {
             var kdTrees = new KDTreePtCloud[dataTree.PathCount];
 
             for (int i = 0; i < dataTree.PathCount; i++)
             {
-                List<Point3d> pts = dataTree.Branches[i].Select(x => x.Value).ToList();
+                List<Point3d> pts = dataTree.Branches[i].ConvertAll(x => x.Value);
                 kdTrees[i] = new KDTreePtCloud(pts);
-
             }
 
             return kdTrees;
         }
 
-        #endregion Methods
-
         public class SolveResults
         {
             public double Value { get; set; }
         }
-
     }
 }
