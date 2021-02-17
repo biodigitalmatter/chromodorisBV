@@ -152,7 +152,9 @@ namespace Chromodoris
 
             // 3. Set
             if (results != null)
+            {
                 _ = DA.SetData(_outAvgDistsIdx, results.Value);
+            }
         }
 
         private static SolveResults ComputeAvgDist(

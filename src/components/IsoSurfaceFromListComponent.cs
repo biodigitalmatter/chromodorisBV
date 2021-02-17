@@ -117,7 +117,7 @@ namespace Chromodoris
             }
             var floatVoxelData = voxelData.Select<double, float>(x => (float)x).ToList();
 
-            var vs = new VolumetricSpace((List<float>)floatVoxelData, resX, resY, resZ);
+            var vs = new VolumetricSpace(floatVoxelData, resX, resY, resZ);
             var isosurface = new HashIsoSurface(vs);
             var mesh = new Mesh();
 
