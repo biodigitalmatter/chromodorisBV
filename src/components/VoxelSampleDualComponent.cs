@@ -26,7 +26,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+
+using Chromodoris.Properties;
 
 using Grasshopper.Kernel;
 
@@ -72,15 +75,15 @@ namespace Chromodoris
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon => Properties.Resources.Icons_Isosurface_Custom;
+        protected override Bitmap Icon => Resources.Icons_Isosurface_Custom;
 
         public override bool IsPreviewCapable => false;
 
 
         /// <summary>
-        /// Registers all the input parameters for this component.
+        ///     Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             _inP1Idx = pManager.AddPointParameter(
                 "Pointcloud 1",
@@ -127,9 +130,9 @@ namespace Chromodoris
         }
 
         /// <summary>
-        /// Registers all the output parameters for this component.
+        ///     Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             _outBIdx = pManager.AddBoxParameter(
                 "Box",
@@ -163,10 +166,10 @@ namespace Chromodoris
         }
 
         /// <summary>
-        /// This is the method that actually does the work.
+        ///     This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
-        protected override void SolveInstance(IGH_DataAccess DA)
+        /// <param name="da">The DA object is used to retrieve from inputs and store in outputs.</param>
+        protected override void SolveInstance(IGH_DataAccess da)
         {
             var ptCloud1 = new List<Point3d>();
             var ptCloud2 = new List<Point3d>();
@@ -176,14 +179,14 @@ namespace Chromodoris
             var box = new Box();
             var zyx = true;
 
-            var requiredDataGotten = new List<bool>()
+            var requiredDataGotten = new List<bool>
             {
-                DA.GetDataList(_inP1Idx, ptCloud1),
-                DA.GetDataList(_inP2Idx, ptCloud2),
-                DA.GetData(_inBIdx, ref box),
-                DA.GetData(_inXIdx, ref xr),
-                DA.GetData(_inYIdx, ref yr),
-                DA.GetData(_inZIdx, ref zr),
+                da.GetDataList(_inP1Idx, ptCloud1),
+                da.GetDataList(_inP2Idx, ptCloud2),
+                da.GetData(_inBIdx, ref box),
+                da.GetData(_inXIdx, ref xr),
+                da.GetData(_inYIdx, ref yr),
+                da.GetData(_inZIdx, ref zr)
             };
 
             // Check if any of the required parameters where not given
@@ -192,16 +195,16 @@ namespace Chromodoris
                 return;
             }
 
-            _ = DA.GetData(_inZYXIdx, ref zyx);
+            _ = da.GetData(_inZYXIdx, ref zyx);
 
             var sampler = new VoxelSamplerDual(ptCloud1, ptCloud2, box, xr, yr, zr, zyx: zyx);
             sampler.ExecuteMultiThreaded();
 
-            _ = DA.SetData(_outBIdx, sampler.BBox);
-            _ = DA.SetDataList(_outFIdx, sampler.VoxelValuesList.Select(x => x.DistFactor));
-            _ = DA.SetDataList(_outD1Idx, sampler.VoxelValuesList.Select(x => x.DistPtCloud1));
-            _ = DA.SetDataList(_outD2Idx, sampler.VoxelValuesList.Select(x => x.DistPtCloud2));
-            _ = DA.SetDataList(_outPIdx, sampler.VoxelPtsList);
+            _ = da.SetData(_outBIdx, sampler.BBox);
+            _ = da.SetDataList(_outFIdx, sampler.VoxelValuesList.Select(x => x.DistFactor));
+            _ = da.SetDataList(_outD1Idx, sampler.VoxelValuesList.Select(x => x.DistPtCloud1));
+            _ = da.SetDataList(_outD2Idx, sampler.VoxelValuesList.Select(x => x.DistPtCloud2));
+            _ = da.SetDataList(_outPIdx, sampler.VoxelPtsList);
         }
 
     }
