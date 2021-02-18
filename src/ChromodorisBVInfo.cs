@@ -27,6 +27,8 @@
 using System;
 using System.Drawing;
 
+using Chromodoris.Properties;
+
 using Grasshopper.Kernel;
 
 namespace Chromodoris
@@ -35,56 +37,23 @@ namespace Chromodoris
     {
         #region Properties
 
-        public override string Name
-        {
-            get
-            {
-                return "ChromodorisBV";
-            }
-        }
+        public override string Name => "ChromodorisBV";
 
-        public override Bitmap Icon
-        {
-            get
-            {
-                return Chromodoris.Properties.Resources.Icons_Chromodoris;
-            }
-        }
+        public override Bitmap Icon => Resources.Icons_Chromodoris;
 
-        public override string Description
-        {
-            get
-            {
-                //Return a short string describing the purpose of this GHA library.
-                return "A general purpose mesh library.";
-            }
-        }
+        public override string Description =>
+            //Return a short string describing the purpose of this GHA library.
+            "A general purpose mesh library.";
 
-        public override Guid Id
-        {
-            get
-            {
-                return new Guid("24D9C88E-6A06-4572-9608-C20DDCBBF9AF");
-            }
-        }
+        public override Guid Id => new Guid("24D9C88E-6A06-4572-9608-C20DDCBBF9AF");
 
-        public override string AuthorName
-        {
-            get
-            {
-                //Return a string identifying you or your company.
-                return "Anton Tetov Johansson";
-            }
-        }
+        public override string AuthorName =>
+            //Return a string identifying you or your company.
+            "Anton Tetov Johansson";
 
-        public override string AuthorContact
-        {
-            get
-            {
-                //Return a string representing your preferred contact details.
-                return "anton@tetov.se";
-            }
-        }
+        public override string AuthorContact =>
+            //Return a string representing your preferred contact details.
+            "anton@tetov.se";
 
         #endregion Properties
     }

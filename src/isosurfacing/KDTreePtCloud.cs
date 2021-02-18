@@ -9,40 +9,25 @@ namespace Chromodoris
 {
     internal class KDTreePtCloud
     {
-        #region Fields
-
         private readonly List<Point3d> _pts;
         private readonly KDTree<int> _tree;
 
-        #endregion Fields
 
-        #region Constructors
-
-        internal KDTreePtCloud(List<Point3d> inPts)
+        internal KDTreePtCloud(IEnumerable<Point3d> inPts)
         {
             _pts = new List<Point3d>(inPts);
             _tree = new KDTree<int>(3);
 
-            for (int i = 0; i < _pts.Count; i++)
+            for (var i = 0; i < _pts.Count; i++)
             {
                 double[] pos = { _pts[i].X, _pts[i].Y, _pts[i].Z };
                 _tree.AddPoint(pos, i);
             }
         }
 
-        #endregion Constructors
 
+        internal int Count => _pts.Count;
 
-
-        #region Properties
-
-        internal int Count { get => _pts.Count; }
-
-        #endregion Properties
-
-
-
-        #region Methods
 
         internal double GetClosestPtDistance(Point3d voxelPt)
         {
@@ -51,7 +36,5 @@ namespace Chromodoris
             Point3d pt = _pts[nborIdx];
             return pt.DistanceTo(voxelPt);
         }
-
-        #endregion Methods
     }
 }

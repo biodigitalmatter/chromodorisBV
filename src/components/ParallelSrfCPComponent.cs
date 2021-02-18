@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,20 +11,20 @@ using Rhino.Geometry;
 
 namespace Chromodoris
 {
-    public class ParallellSrfCPDistComponent : GH_Component
+    public class ParallelSrfCPComponent : GH_Component
     {
         private int _inSamplePtsIdx;
         private int _inSrfIdx;
         private int _outDistIdx;
 
         /// <summary>
-        /// Initializes a new instance of the AverageDistancesToPointclouds class.
+        ///     Initializes a new instance of the AverageDistancesToPointclouds class.
         /// </summary>
-        public ParallellSrfCPDistComponent()
-          : base(
-                "Parallell Srf Closest Point Distance",
+        public ParallelSrfCPComponent()
+            : base(
+                "Parallel Srf Closest Point Distance",
                 "ParSrfCPDist",
-                "Find the distance to the closest point on surface, in parallell",
+                "Find the distance to the closest point on surface, in parallel",
                 "ChromodorisBV",
                 "Extra")
         {
@@ -42,12 +43,12 @@ namespace Chromodoris
         /// </summary>
         //You can add image files to your project resources and access them like this:
         // return Resources.IconForThisComponent;
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override Bitmap Icon => null;
 
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             _inSamplePtsIdx = pManager.AddPointParameter(
                 "Points",
@@ -65,7 +66,7 @@ namespace Chromodoris
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             _outDistIdx = pManager.AddNumberParameter(
                 "Distance",
@@ -75,56 +76,51 @@ namespace Chromodoris
         }
 
         /// <summary>
-        /// This is the method that actually does the work.
+        ///     This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
-        protected override void SolveInstance(IGH_DataAccess DA)
+        /// <param name="da">The DA object is used to retrieve from inputs and store in outputs.</param>
+        protected override void SolveInstance(IGH_DataAccess da)
         {
             Surface srf = null;
             var pts = new List<Point3d>();
 
             try
             {
-                if (!DA.GetDataList(_inSamplePtsIdx, pts))
-                {
-                    return;
-                }
+                if (!da.GetDataList(_inSamplePtsIdx, pts)) return;
             }
-            catch (System.OutOfMemoryException)
+            catch (OutOfMemoryException)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Too many points to access, out of memory error.");
             }
 
-            if (!DA.GetData(_inSrfIdx, ref srf))
-            {
-                return;
-            }
+            if (!da.GetData(_inSrfIdx, ref srf)) return;
 
             SolveData solveData = new SolveData(pts, srf);
 
-            _ = DA.SetDataList(_outDistIdx, GetDistances(solveData));
+            _ = da.SetDataList(_outDistIdx, GetDistances(solveData));
         }
 
-        private List<double> GetDistances(SolveData solveData)
+        private IEnumerable<double> GetDistances(SolveData solveData)
         {
             var dists = new double[solveData.Pts.Count];
 
             // Static parts
             var partitioner = Partitioner.Create(0, solveData.Pts.Count);
 
-            _ = Parallel.ForEach(partitioner, (range, loopstate) => ComputeRange(dists, solveData, range, loopstate));
+            _ = Parallel.ForEach(partitioner, (range, loopState) => ComputeRange(dists, solveData, range, loopState));
 
             return dists.ToList();
         }
 
-        private static void ComputeRange(in double[] resultList, SolveData solveData, Tuple<int, int> range, ParallelLoopState loopstate)
+        private static void ComputeRange(in double[] resultList, SolveData solveData, Tuple<int, int> range,
+            ParallelLoopState loopState)
         {
             for (int i = range.Item1; i < range.Item2; i++)
             {
                 if (!solveData.Srf.ClosestPoint(solveData.Pts[i], out double u, out double v))
                 {
-                    loopstate.Break();
-                    throw new System.Exception("No point found on surface.");
+                    loopState.Break();
+                    throw new Exception("No point found on surface.");
                 }
                 resultList[i] = solveData.Pts[i].DistanceTo(solveData.Srf.PointAt(u, v));
             }
@@ -133,7 +129,7 @@ namespace Chromodoris
         // TODO: This should be tested more to see if there's any impact.
         protected override void AfterSolveInstance() => GC.Collect();
 
-        public readonly struct SolveData
+        private readonly struct SolveData
         {
             public List<Point3d> Pts { get; }
             public Surface Srf { get; }

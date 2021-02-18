@@ -46,7 +46,6 @@ namespace Chromodoris
         private int _inXIdx;
         private int _inYIdx;
         private int _inZIdx;
-        // ReSharper disable once InconsistentNaming
         private int _inZYXIdx;
         private int _outBIdx;
         private int _outFIdx;

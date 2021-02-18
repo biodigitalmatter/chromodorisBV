@@ -26,6 +26,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -37,7 +38,7 @@ using Rhino.Geometry;
 
 namespace Chromodoris
 {
-    public class AverageDistancesToPointcloudsComponent : GH_TaskCapableComponent<AverageDistancesToPointcloudsComponent.SolveResults>
+    public class AvgDistsToPtCloudsComponent : GH_TaskCapableComponent<AvgDistsToPtCloudsComponent.SolveResults>
     {
         private int _inSearchPtsIdx;
         private int _inPtCloudsIdx;
@@ -45,12 +46,12 @@ namespace Chromodoris
         private int _outAvgDistsIdx;
 
         /// <summary>
-        /// Initializes a new instance of the AverageDistancesToPointclouds class.
+        ///     Initializes a new instance of the AverageDistancesToPointclouds class.
         /// </summary>
-        public AverageDistancesToPointcloudsComponent()
-          : base(
+        public AvgDistsToPtCloudsComponent()
+            : base(
                 "AverageDistancesToPointclouds",
-                "AvgDistCP",
+                "AvgDistToCP",
                 "Finds shortest distances to point in N number of point clouds.",
                 "ChromodorisBV",
                 "Extra")
@@ -68,12 +69,12 @@ namespace Chromodoris
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override Bitmap Icon => null;
 
         /// <summary>
-        /// Registers all the input parameters for this component.
+        ///     Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             _inSearchPtsIdx = pManager.AddPointParameter(
                 "Search points",
@@ -96,9 +97,9 @@ namespace Chromodoris
         }
 
         /// <summary>
-        /// Registers all the output parameters for this component.
+        ///     Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             _outAvgDistsIdx = pManager.AddNumberParameter(
                 "AvgDist",
@@ -108,10 +109,10 @@ namespace Chromodoris
         }
 
         /// <summary>
-        /// This is the method that actually does the work.
+        ///     This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
-        protected override void SolveInstance(IGH_DataAccess DA)
+        /// <param name="da">The DA object is used to retrieve from inputs and store in outputs.</param>
+        protected override void SolveInstance(IGH_DataAccess da)
         {
             if (InPreSolve)
             {
@@ -119,42 +120,40 @@ namespace Chromodoris
                 Point3d searchPt = new Point3d();
 
                 var nDistsToAvg = 0;
-                _ = DA.GetData(_inNDistsToAvgIdx, ref nDistsToAvg);
+                _ = da.GetData(_inNDistsToAvgIdx, ref nDistsToAvg);
 
                 Task<SolveResults> tsk = null;
-                if (DA.GetData(_inSearchPtsIdx, ref searchPt)
-                    && DA.GetDataTree(_inPtCloudsIdx, out GH_Structure<GH_Point> ptCloudDataTree))
+                if (da.GetData(_inSearchPtsIdx, ref searchPt)
+                    && da.GetDataTree(_inPtCloudsIdx, out GH_Structure<GH_Point> ptCloudDataTree))
                 {
-                    var ptCloudKDTrees = PtCloudDataTreesToKDTrees(ptCloudDataTree);
-                    tsk = Task.Run(() => ComputeAvgDist(searchPt, ptCloudKDTrees, nDistsToAvg), CancelToken);
+                    KDTreePtCloud[] ptCloudKdTrees = PtCloudDataTreesToKdTrees(ptCloudDataTree);
+                    tsk = Task.Run(() => ComputeAvgDist(searchPt, ptCloudKdTrees, nDistsToAvg), CancelToken);
                 }
                 TaskList.Add(tsk);
 
                 return;
             }
 
-            if (!GetSolveResults(DA, out SolveResults results))
+            if (!GetSolveResults(da, out SolveResults results))
             {
                 // Compute right here, right now.
                 // 1. Collect
-                Point3d searchPt = new Point3d();
-                if (!DA.GetData(_inSearchPtsIdx, ref searchPt)) { return; }
+                var searchPt = new Point3d();
+                if (!da.GetData(_inSearchPtsIdx, ref searchPt)) return;
 
                 var nDistsToAvg = 0;
-                _ = DA.GetData(_inNDistsToAvgIdx, ref nDistsToAvg);
+                _ = da.GetData(_inNDistsToAvgIdx, ref nDistsToAvg);
 
-                if (!DA.GetDataTree(_inPtCloudsIdx, out GH_Structure<GH_Point> ptCloudDataTree)) { return; }
-                var ptCloudKDTrees = PtCloudDataTreesToKDTrees(ptCloudDataTree);
+                if (!da.GetDataTree(_inPtCloudsIdx, out GH_Structure<GH_Point> ptCloudDataTree)) return;
+
+                KDTreePtCloud[] ptCloudKdTrees = PtCloudDataTreesToKdTrees(ptCloudDataTree);
 
                 // 2. Compute
-                results = ComputeAvgDist(searchPt, ptCloudKDTrees, nDistsToAvg);
+                results = ComputeAvgDist(searchPt, ptCloudKdTrees, nDistsToAvg);
             }
 
             // 3. Set
-            if (results != null)
-            {
-                _ = DA.SetData(_outAvgDistsIdx, results.Value);
-            }
+            if (results != null) _ = da.SetData(_outAvgDistsIdx, results.Value);
         }
 
         private static SolveResults ComputeAvgDist(
@@ -165,10 +164,10 @@ namespace Chromodoris
             var result = new SolveResults();
             var allDists = new List<double>(ptClouds.Length);
 
-            foreach (KDTreePtCloud tree in ptClouds)
-            {
-                allDists.Add(tree.GetClosestPtDistance(searchPt));
-            }
+            // Don't make this PLINQ since this method is already running in parallel
+            allDists.AddRange(ptClouds
+                .Select(tree => tree.GetClosestPtDistance(searchPt)));
+
             allDists.Sort();
 
             List<double> distsToAverage = allDists.GetRange(0, nToAveragePerDistance);
@@ -177,11 +176,11 @@ namespace Chromodoris
             return result;
         }
 
-        private static KDTreePtCloud[] PtCloudDataTreesToKDTrees(GH_Structure<GH_Point> dataTree)
+        private static KDTreePtCloud[] PtCloudDataTreesToKdTrees(GH_Structure<GH_Point> dataTree)
         {
             var kdTrees = new KDTreePtCloud[dataTree.PathCount];
 
-            for (int i = 0; i < dataTree.PathCount; i++)
+            for (var i = 0; i < dataTree.PathCount; i++)
             {
                 List<Point3d> pts = dataTree.Branches[i].ConvertAll(x => x.Value);
                 kdTrees[i] = new KDTreePtCloud(pts);

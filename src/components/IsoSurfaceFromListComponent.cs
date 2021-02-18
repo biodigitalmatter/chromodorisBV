@@ -26,7 +26,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+
+using Chromodoris.Properties;
 
 using Grasshopper.Kernel;
 
@@ -46,113 +49,85 @@ namespace Chromodoris
         {
         }
 
-        private int InBIdx;
-        private int InDIdx;
-        private int InVIdx;
-        private int InXIdx;
-        private int InYIdx;
-        private int InZIdx;
+        private int _inBIdx;
+        private int _inDIdx;
+        private int _inVIdx;
+        private int _inXIdx;
+        private int _inYIdx;
+        private int _inZIdx;
 
         /// <summary>
-        /// Registers all the input parameters for this component.
+        ///     Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            InBIdx = pManager.AddBoxParameter("Box", "B", "The bounding box.", GH_ParamAccess.item);
-            InDIdx = pManager.AddNumberParameter("Voxel Data", "D", "Voxelization data formatted as double[x,y,z].", GH_ParamAccess.list);
-            InVIdx = pManager.AddNumberParameter("Sample Value", "V", "The value to sample at, ie. IsoValue", GH_ParamAccess.item);
-            InXIdx = pManager.AddIntegerParameter("X resolution", "X", "X resolution of bounding box", GH_ParamAccess.item);
-            InYIdx = pManager.AddIntegerParameter("Y resolution", "Y", "Y resolution of bounding box", GH_ParamAccess.item);
-            InZIdx = pManager.AddIntegerParameter("Z resolution", "Z", "Z resolution of bounding box", GH_ParamAccess.item);
+            _inBIdx = pManager.AddBoxParameter("Box", "B", "The bounding box.", GH_ParamAccess.item);
+            _inDIdx = pManager.AddNumberParameter("Voxel Data", "D", "Voxelization data formatted as double[x,y,z].",
+                GH_ParamAccess.list);
+            _inVIdx = pManager.AddNumberParameter("Sample Value", "V", "The value to sample at, ie. IsoValue",
+                GH_ParamAccess.item);
+            _inXIdx = pManager.AddIntegerParameter("X resolution", "X", "X resolution of bounding box",
+                GH_ParamAccess.item);
+            _inYIdx = pManager.AddIntegerParameter("Y resolution", "Y", "Y resolution of bounding box",
+                GH_ParamAccess.item);
+            _inZIdx = pManager.AddIntegerParameter("Z resolution", "Z", "Z resolution of bounding box",
+                GH_ParamAccess.item);
         }
 
-        private int OutMIdx;
+        private int _outMIdx;
 
         /// <summary>
-        /// Registers all the output parameters for this component.
+        ///     Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            OutMIdx = pManager.AddMeshParameter("IsoSurface", "M", "The generated isosurface.", GH_ParamAccess.item);
+            _outMIdx = pManager.AddMeshParameter("IsoSurface", "M", "The generated isosurface.", GH_ParamAccess.item);
         }
 
         /// <summary>
-        /// This is the method that actually does the work.
+        ///     This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
-        protected override void SolveInstance(IGH_DataAccess DA)
+        /// <param name="da">The DA object is used to retrieve from inputs and store in outputs.</param>
+        protected override void SolveInstance(IGH_DataAccess da)
         {
             var box = new Box();
-            double isovalue = 0;
+            double isoValue = 0;
             var voxelData = new List<double>();
 
             var resX = 0;
             var resY = 0;
             var resZ = 0;
 
-            if (!DA.GetData(InBIdx, ref box))
-            {
-                return;
-            }
-            if (!DA.GetDataList(InDIdx, voxelData))
-            {
-                return;
-            }
+            if (!da.GetData(_inBIdx, ref box)) return;
+            if (!da.GetDataList(_inDIdx, voxelData)) return;
 
-            if (!DA.GetData(InVIdx, ref isovalue))
-            {
-                return;
-            }
-            if (!DA.GetData(InXIdx, ref resX))
-            {
-                return;
-            }
-            if (!DA.GetData(InYIdx, ref resY))
-            {
-                return;
-            }
-            if (!DA.GetData(InZIdx, ref resZ))
-            {
-                return;
-            }
-            var floatVoxelData = voxelData.Select<double, float>(x => (float)x).ToList();
+            if (!da.GetData(_inVIdx, ref isoValue)) return;
+            if (!da.GetData(_inXIdx, ref resX)) return;
+            if (!da.GetData(_inYIdx, ref resY)) return;
+            if (!da.GetData(_inZIdx, ref resZ)) return;
+            List<float> floatVoxelData = voxelData.Select(x => (float)x).ToList();
 
             var vs = new VolumetricSpace(floatVoxelData, resX, resY, resZ);
             var isosurface = new HashIsoSurface(vs);
             var mesh = new Mesh();
 
-            isosurface.computeSurfaceMesh(isovalue, ref mesh);
+            isosurface.computeSurfaceMesh(isoValue, ref mesh);
             TransformMesh(mesh, box, vs.IsoData);
-            DA.SetData(OutMIdx, mesh);
-
-            voxelData = null;
-            vs = null;
-            isosurface = null;
+            da.SetData(_outMIdx, mesh);
         }
 
         /// <summary>
-        /// Provides an Icon for the component.
+        ///     Provides an Icon for the component.
         /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return Chromodoris.Properties.Resources.Icon_Isosurface;
-                // return null;
-            }
-        }
+        protected override Bitmap Icon => Resources.Icon_Isosurface;
 
+        // return null;
         /// <summary>
-        /// Gets the unique ID for this component. Do not change this ID after release.
+        ///     Gets the unique ID for this component. Do not change this ID after release.
         /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{845E601C-7FA3-476D-B4A6-8AF2331B40E8}"); }
-        }
+        public override Guid ComponentGuid => new Guid("{845E601C-7FA3-476D-B4A6-8AF2331B40E8}");
 
-        public void TransformMesh(Rhino.Geometry.Mesh mesh, Box _box, float[,,] data)
+        private static void TransformMesh(Mesh mesh, Box box, float[,,] data)
         {
 
 
@@ -164,8 +139,9 @@ namespace Chromodoris
             var gridBox = new Box(Plane.WorldXY, new Interval(0, x), new Interval(0, y), new Interval(0, z));
             gridBox.RepositionBasePlane(gridBox.Center);
 
-            Transform trans = Transform.PlaneToPlane(gridBox.Plane, _box.Plane);
-            trans = trans * Transform.Scale(gridBox.Plane, _box.X.Length / gridBox.X.Length, _box.Y.Length / gridBox.Y.Length, _box.Z.Length / gridBox.Z.Length);
+            Transform trans = Transform.PlaneToPlane(gridBox.Plane, box.Plane);
+            trans *= Transform.Scale(gridBox.Plane, box.X.Length / gridBox.X.Length,
+                box.Y.Length / gridBox.Y.Length, box.Z.Length / gridBox.Z.Length);
 
             mesh.Transform(trans);
             mesh.Faces.CullDegenerateFaces();
