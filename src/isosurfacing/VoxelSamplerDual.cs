@@ -24,9 +24,13 @@
  *
  */
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+
+using Grasshopper.Kernel.Types;
 
 using Rhino.Geometry;
 
@@ -41,53 +45,65 @@ namespace Chromodoris
 
     internal class VoxelSamplerDual
     {
+        private readonly List<GHVoxelData>[] _ghVoxelData;
         private readonly List<DimensionValues> _outputOrderedDimVals;
         private readonly KDTreePtCloud[] _ptClouds;
         private readonly List<Point3d>[] _voxelPts;
-        private readonly List<VoxelValues>[] _voxelValues;
         private readonly bool _zyx;
 
-        internal VoxelSamplerDual(List<Point3d> pointCloud1, List<Point3d> pointCloud2, Box box, int resX, int resY,
-            int resZ, bool zyx = false)
+        internal VoxelSamplerDual(
+            IEnumerable<Point3d> ptCloud1, IEnumerable<Point3d> ptCloud2, Box box,
+            int resX, int resY, int resZ, bool zyx = false
+        )
         {
-            _ptClouds = new[] { new KDTreePtCloud(pointCloud1), new KDTreePtCloud(pointCloud2) };
+            _ptClouds = new[]
+                { new KDTreePtCloud(ptCloud1), new KDTreePtCloud(ptCloud2) };
 
             BBox = box;
 
-            DimensionValues xVals, yVals, zVals;
-
-            xVals.NVoxels = resX;
-            yVals.NVoxels = resY;
-            zVals.NVoxels = resZ;
-
-            xVals.MinCoord = BBox.X.Min;
-            yVals.MinCoord = BBox.Y.Min;
-            zVals.MinCoord = BBox.Z.Min;
-
-            xVals.StepSize = (BBox.X.Max - BBox.X.Min) / (resX - 1);
-            yVals.StepSize = (BBox.Y.Max - BBox.Y.Min) / (resY - 1);
-            zVals.StepSize = (BBox.Z.Max - BBox.Z.Min) / (resZ - 1);
+            var xVals = new DimensionValues
+            {
+                NVoxels = resX,
+                MinCoord = BBox.X.Min,
+                StepSize = (BBox.X.Max - BBox.X.Min) / (resX - 1),
+            };
+            var yVals = new DimensionValues
+            {
+                NVoxels = resY,
+                MinCoord = BBox.Y.Min,
+                StepSize = (BBox.Y.Max - BBox.Y.Min) / (resY - 1),
+            };
+            var zVals = new DimensionValues
+            {
+                NVoxels = resZ,
+                MinCoord = BBox.Z.Min,
+                StepSize = (BBox.Z.Max - BBox.Z.Min) / (resZ - 1),
+            };
 
             _outputOrderedDimVals = new List<DimensionValues> { xVals, yVals, zVals };
-            if (zyx) _outputOrderedDimVals.Reverse();
+            if (zyx)
+            {
+                _outputOrderedDimVals.Reverse();
+            }
 
             _zyx = zyx;
 
-            _voxelValues = new List<VoxelValues>[_outputOrderedDimVals[0].NVoxels];
+            _ghVoxelData = new List<GHVoxelData>[_outputOrderedDimVals[0].NVoxels];
             _voxelPts = new List<Point3d>[_outputOrderedDimVals[0].NVoxels];
         }
 
         internal Box BBox { get; }
-        internal List<Point3d> VoxelPtsList => FlattenArrayOfList(_voxelPts);
 
-        internal List<VoxelValues> VoxelValuesList => FlattenArrayOfList(_voxelValues);
+        // Flat list
+        internal IEnumerable<GHVoxelData> GHVoxelDataList =>
+            _ghVoxelData.SelectMany(x => x);
 
-        private Point3d OutputOrderedCoordsToPoint3d(IReadOnlyList<double> coords)
-        {
-            return !_zyx ? new Point3d(coords[0], coords[1], coords[2]) : new Point3d(coords[2], coords[1], coords[0]);
-        }
+        private Point3d OutputOrderedCoordsToPoint3d(IReadOnlyList<double> coords) =>
+            !_zyx
+                ? new Point3d(coords[0], coords[1], coords[2])
+                : new Point3d(coords[2], coords[1], coords[0]);
 
-        private VoxelValues GetVoxelValues(Point3d voxelPt)
+        private Tuple<double, double, double> GetVoxelValues(Point3d voxelPt)
         {
             double voxelDist1 = _ptClouds[0].GetClosestPtDistance(voxelPt);
             double voxelDist2 = _ptClouds[1].GetClosestPtDistance(voxelPt);
@@ -95,34 +111,29 @@ namespace Chromodoris
             double sumDist = voxelDist1 + voxelDist2;
             double val = voxelDist1 / sumDist;
 
-            return new VoxelValues((float)val, voxelDist1, voxelDist2);
+            return new Tuple<double, double, double>(val, voxelDist1, voxelDist2);
         }
 
         internal void ExecuteMultiThreaded()
         {
-            _ = Parallel.ForEach(Partitioner.Create(0, _outputOrderedDimVals[0].NVoxels), (range, _) =>
-            {
-                for (int i = range.Item1; i < range.Item2; i++) SetVoxelValuesForSlice(i);
-            });
+            _ = Parallel.ForEach(
+                Partitioner.Create(0, _outputOrderedDimVals[0].NVoxels), (range, _) =>
+                {
+                    for (int i = range.Item1; i < range.Item2; i++)
+                    {
+                        SetVoxelValuesForSlice(i);
+                    }
+                });
         }
 
-        private static List<T> FlattenArrayOfList<T>(IEnumerable<List<T>> array)
-        {
-            var newList = new List<T>();
-            foreach (List<T> list in array) newList.AddRange(list);
-
-            return newList;
-        }
 
         private void SetVoxelValuesForSlice(int primaryDimIdx)
         {
-            double GetCoord(int idx, DimensionValues dim)
-            {
-                return dim.MinCoord + idx * dim.StepSize;
-            }
+            double GetCoord(int idx, DimensionValues dim) =>
+                dim.MinCoord + idx * dim.StepSize;
 
             // Lists specific to slice to avoid race conditions
-            _voxelValues[primaryDimIdx] = new List<VoxelValues>();
+            _ghVoxelData[primaryDimIdx] = new List<GHVoxelData>();
             _voxelPts[primaryDimIdx] = new List<Point3d>();
 
             // Initialize once
@@ -130,33 +141,49 @@ namespace Chromodoris
             var outputOrderedCoords = new double[3];
 
             outputOrderedCoords[0] = GetCoord(primaryDimIdx, _outputOrderedDimVals[0]);
-            for (var secondaryDimIdx = 0; secondaryDimIdx < _outputOrderedDimVals[1].NVoxels; secondaryDimIdx++)
+            for (var secondaryDimIdx = 0;
+                secondaryDimIdx < _outputOrderedDimVals[1].NVoxels;
+                secondaryDimIdx++)
             {
-                outputOrderedCoords[1] = GetCoord(secondaryDimIdx, _outputOrderedDimVals[1]);
-                for (var tertiaryDimIdx = 0; tertiaryDimIdx < _outputOrderedDimVals[2].NVoxels; tertiaryDimIdx++)
+                outputOrderedCoords[1] =
+                    GetCoord(secondaryDimIdx, _outputOrderedDimVals[1]);
+                for (var tertiaryDimIdx = 0;
+                    tertiaryDimIdx < _outputOrderedDimVals[2].NVoxels;
+                    tertiaryDimIdx++)
                 {
-                    outputOrderedCoords[2] = GetCoord(tertiaryDimIdx, _outputOrderedDimVals[2]);
+                    outputOrderedCoords[2] =
+                        GetCoord(tertiaryDimIdx, _outputOrderedDimVals[2]);
 
                     Point3d voxelPt = OutputOrderedCoordsToPoint3d(outputOrderedCoords);
+                    Tuple<double, double, double> distData = GetVoxelValues(voxelPt);
 
-                    _voxelPts[primaryDimIdx].Add(voxelPt);
-                    _voxelValues[primaryDimIdx].Add(GetVoxelValues(voxelPt));
+                    _ghVoxelData[primaryDimIdx].Add(new GHVoxelData(voxelPt,
+                        distData.Item1, distData.Item2, distData.Item3));
                 }
             }
         }
 
-        internal readonly struct VoxelValues
+        // Struct storing voxel values as GH_* types.
+        // At the moment they are only used when setting component outputs, if they
+        // need to be used outside of that context just change it to a struct with
+        // doubles and either convert implicitly or using a computed property.
+        internal readonly struct GHVoxelData
         {
-            internal VoxelValues(float distFactor, double distPtCloud1, double distPtCloud2)
+            internal GHVoxelData(
+                Point3d centerPt, double distFactor, double distPtCloud1,
+                double distPtCloud2
+            )
             {
-                DistFactor = distFactor;
-                DistPtCloud1 = distPtCloud1;
-                DistPtCloud2 = distPtCloud2;
+                CenterPt = new GH_Point(centerPt);
+                DistFactor = new GH_Number(distFactor);
+                DistPtCloud1 = new GH_Number(distPtCloud1);
+                DistPtCloud2 = new GH_Number(distPtCloud2);
             }
 
-            internal float DistFactor { get; }
-            internal double DistPtCloud1 { get; }
-            internal double DistPtCloud2 { get; }
+            internal GH_Point CenterPt { get; }
+            internal GH_Number DistFactor { get; }
+            internal GH_Number DistPtCloud1 { get; }
+            internal GH_Number DistPtCloud2 { get; }
         }
     }
 }

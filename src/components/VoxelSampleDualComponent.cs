@@ -39,40 +39,38 @@ namespace Chromodoris
 {
     public class VoxelSampleDual : GH_Component
     {
-
+        private int _inBIdx;
         private int _inP1Idx;
         private int _inP2Idx;
-        private int _inBIdx;
         private int _inXIdx;
         private int _inYIdx;
         private int _inZIdx;
         private int _inZYXIdx;
         private int _outBIdx;
-        private int _outFIdx;
         private int _outD1Idx;
         private int _outD2Idx;
+        private int _outFIdx;
         private int _outPIdx;
 
 
         /// <summary>
-        /// Initializes a new instance of the VoxelSampleDual class.
+        ///     Initializes a new instance of the VoxelSampleDual class.
         /// </summary>
-        public VoxelSampleDual()
-          : base("Sample Voxels (Dual)", "VoxelSample(D)",
-              "Construct and sample a voxel grid from two point cloud affecting each other.",
-              "ChromodorisBV", "Isosurface")
+        public VoxelSampleDual() : base("Sample Voxels (Dual)", "VoxelSample(D)",
+            "Construct and sample a voxel grid from two point cloud affecting each other.",
+            "ChromodorisBV", "Isosurface")
         {
         }
 
 
-
         /// <summary>
-        /// Gets the unique ID for this component. Do not change this ID after release.
+        ///     Gets the unique ID for this component. Do not change this ID after release.
         /// </summary>
-        public override Guid ComponentGuid => new Guid("cb4e6b5c-6b2a-4a4e-9ab1-6c16ae102760");
+        public override Guid ComponentGuid =>
+            new Guid("cb4e6b5c-6b2a-4a4e-9ab1-6c16ae102760");
 
         /// <summary>
-        /// Provides an Icon for the component.
+        ///     Provides an Icon for the component.
         /// </summary>
         protected override Bitmap Icon => Resources.Icons_Isosurface_Custom;
 
@@ -84,48 +82,27 @@ namespace Chromodoris
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            _inP1Idx = pManager.AddPointParameter(
-                "Pointcloud 1",
-                "P1",
-                "First cloud to sample.",
-                GH_ParamAccess.list);
+            _inP1Idx = pManager.AddPointParameter("Pointcloud 1", "P1",
+                "First cloud to sample.", GH_ParamAccess.list);
 
-            _inP2Idx = pManager.AddPointParameter(
-                "Pointcloud 2",
-                "P2",
-                "Second cloud to sample.",
-                GH_ParamAccess.list);
+            _inP2Idx = pManager.AddPointParameter("Pointcloud 2", "P2",
+                "Second cloud to sample.", GH_ParamAccess.list);
 
-            _inBIdx = pManager.AddBoxParameter(
-                "Box",
-                "B",
-                "The box representing the voxel grid.",
-                GH_ParamAccess.item);
+            _inBIdx = pManager.AddBoxParameter("Box", "B",
+                "The box representing the voxel grid.", GH_ParamAccess.item);
 
-            _inXIdx = pManager.AddIntegerParameter(
-                "X Resolution",
-                "X",
-                "The number of grid cells in the X-direction.",
-                GH_ParamAccess.item);
+            _inXIdx = pManager.AddIntegerParameter("X Resolution", "X",
+                "The number of grid cells in the X-direction.", GH_ParamAccess.item);
 
-            _inYIdx = pManager.AddIntegerParameter(
-                "Y Resolution",
-                "Y",
-                "The number of grid cells in the Y-direction.",
-                GH_ParamAccess.item);
+            _inYIdx = pManager.AddIntegerParameter("Y Resolution", "Y",
+                "The number of grid cells in the Y-direction.", GH_ParamAccess.item);
 
-            _inZIdx = pManager.AddIntegerParameter(
-                "Z Resolution",
-                "Z",
-                "The number of grid cells in the Z-direction.",
-                GH_ParamAccess.item);
+            _inZIdx = pManager.AddIntegerParameter("Z Resolution", "Z",
+                "The number of grid cells in the Z-direction.", GH_ParamAccess.item);
 
-            _inZYXIdx = pManager.AddBooleanParameter(
-                "ZYX output",
-                "ZYX",
+            _inZYXIdx = pManager.AddBooleanParameter("ZYX output", "ZYX",
                 "Order output first by Z dimension, then Y and last X. Defaults to True.",
-                GH_ParamAccess.item,
-                false);
+                GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -133,35 +110,23 @@ namespace Chromodoris
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            _outBIdx = pManager.AddBoxParameter(
-                "Box",
-                "B",
-                "The generated box representing voxel grid.",
-                GH_ParamAccess.item);
+            _outBIdx = pManager.AddBoxParameter("Box", "B",
+                "The generated box representing voxel grid.", GH_ParamAccess.item);
 
-            _outFIdx = pManager.AddGenericParameter(
-                "Distance factor",
-                "F",
+            _outFIdx = pManager.AddGenericParameter("Distance factor", "F",
                 "Distance to closest point in first pointcloud compared to closest point in second.",
                 GH_ParamAccess.list);
 
-            _outD1Idx = pManager.AddGenericParameter(
-                "Distance to CP in first PtCloud",
-                "D1",
-                "Absolute distance to closest point in first pointcloud.",
+            _outD1Idx = pManager.AddGenericParameter("Distance to CP in first PtCloud",
+                "D1", "Absolute distance to closest point in first pointcloud.",
                 GH_ParamAccess.list);
 
-            _outD2Idx = pManager.AddGenericParameter(
-                "Distance to CP in 2nd PtCloud",
-                "D2",
-                "Absolute distance to closest point in second pointcloud.",
+            _outD2Idx = pManager.AddGenericParameter("Distance to CP in 2nd PtCloud",
+                "D2", "Absolute distance to closest point in second pointcloud.",
                 GH_ParamAccess.list);
 
-            _outPIdx = pManager.AddPointParameter(
-                "Voxel center points",
-                "P",
-                "Voxel center points.",
-                GH_ParamAccess.list);
+            _outPIdx = pManager.AddPointParameter("Voxel center points", "P",
+                "Voxel center points.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -185,7 +150,7 @@ namespace Chromodoris
                 da.GetData(_inBIdx, ref box),
                 da.GetData(_inXIdx, ref xr),
                 da.GetData(_inYIdx, ref yr),
-                da.GetData(_inZIdx, ref zr)
+                da.GetData(_inZIdx, ref zr),
             };
 
             // Check if any of the required parameters where not given
@@ -196,15 +161,18 @@ namespace Chromodoris
 
             _ = da.GetData(_inZYXIdx, ref zyx);
 
-            var sampler = new VoxelSamplerDual(ptCloud1, ptCloud2, box, xr, yr, zr, zyx: zyx);
+            var sampler =
+                new VoxelSamplerDual(ptCloud1, ptCloud2, box, xr, yr, zr, zyx);
             sampler.ExecuteMultiThreaded();
 
-            _ = da.SetData(_outBIdx, sampler.BBox);
-            _ = da.SetDataList(_outFIdx, sampler.VoxelValuesList.Select(x => x.DistFactor));
-            _ = da.SetDataList(_outD1Idx, sampler.VoxelValuesList.Select(x => x.DistPtCloud1));
-            _ = da.SetDataList(_outD2Idx, sampler.VoxelValuesList.Select(x => x.DistPtCloud2));
-            _ = da.SetDataList(_outPIdx, sampler.VoxelPtsList);
-        }
+            IEnumerable<VoxelSamplerDual.GHVoxelData> voxelData =
+                sampler.GHVoxelDataList;
 
+            _ = da.SetData(_outBIdx, sampler.BBox);
+            _ = da.SetDataList(_outFIdx, voxelData.Select(x => x.DistFactor));
+            _ = da.SetDataList(_outD1Idx, voxelData.Select(x => x.DistPtCloud1));
+            _ = da.SetDataList(_outD2Idx, voxelData.Select(x => x.DistPtCloud2));
+            _ = da.SetDataList(_outPIdx, voxelData.Select(x => x.CenterPt));
+        }
     }
 }

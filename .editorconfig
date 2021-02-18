@@ -12,7 +12,15 @@ csharp_style_var_for_built_in_types = false:suggestion
 csharp_style_var_when_type_is_apparent = true:none
 
 # ReSharper properties
+resharper_braces_for_for = required
+resharper_braces_for_foreach = required
+resharper_braces_for_ifelse = required
+resharper_csharp_align_multiline_parameter = true
+resharper_csharp_max_line_length = 88
+resharper_csharp_wrap_after_declaration_lpar = true
 resharper_for_built_in_types = use_var_when_evident
+resharper_trailing_comma_in_multiline_lists = true
+resharper_wrap_before_declaration_rpar = true
 
 [LICENSE]
 insert_final_newline = false

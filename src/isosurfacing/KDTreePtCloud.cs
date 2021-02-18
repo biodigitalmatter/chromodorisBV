@@ -9,32 +9,32 @@ namespace Chromodoris
 {
     internal class KDTreePtCloud
     {
-        private readonly List<Point3d> _pts;
-        private readonly KDTree<int> _tree;
-
-
         internal KDTreePtCloud(IEnumerable<Point3d> inPts)
         {
-            _pts = new List<Point3d>(inPts);
-            _tree = new KDTree<int>(3);
+            Pts = new List<Point3d>(inPts);
+            Tree = new KDTree<int>(3, Pts.Count);
 
-            for (var i = 0; i < _pts.Count; i++)
+            for (var i = 0; i < Pts.Count; i++)
             {
-                double[] pos = { _pts[i].X, _pts[i].Y, _pts[i].Z };
-                _tree.AddPoint(pos, i);
+                Tree.AddPoint(Point3dToDoubleArray(Pts[i]), i);
             }
         }
 
+        // Could be made public if needed
+        private KDTree<int> Tree { get; }
+        private List<Point3d> Pts { get; }
 
-        internal int Count => _pts.Count;
-
-
-        internal double GetClosestPtDistance(Point3d voxelPt)
+        internal double GetClosestPtDistance(Point3d pt)
         {
-            double[] voxelPos = { voxelPt.X, voxelPt.Y, voxelPt.Z };
-            int nborIdx = _tree.NearestNeighbors(voxelPos, 1).First();
-            Point3d pt = _pts[nborIdx];
-            return pt.DistanceTo(voxelPt);
+            double[] voxelPos = { pt.X, pt.Y, pt.Z };
+            int nborIdx = Tree.NearestNeighbors(voxelPos, 1).First();
+            Point3d foundPt = Pts[nborIdx];
+            return pt.DistanceTo(foundPt);
+        }
+
+        private static double[] Point3dToDoubleArray(Point3d pt)
+        {
+            return new[] { pt.X, pt.Y, pt.Z };
         }
     }
 }
