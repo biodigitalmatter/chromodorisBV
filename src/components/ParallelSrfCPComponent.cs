@@ -9,7 +9,7 @@ using Grasshopper.Kernel;
 
 using Rhino.Geometry;
 
-namespace Chromodoris
+namespace Chromodoris.Components
 {
     public class ParallelSrfCPComponent : GH_Component
     {

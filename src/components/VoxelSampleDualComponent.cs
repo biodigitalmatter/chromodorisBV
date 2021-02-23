@@ -29,13 +29,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
+using Chromodoris.IsoSurfacing;
 using Chromodoris.Properties;
 
 using Grasshopper.Kernel;
 
 using Rhino.Geometry;
 
-namespace Chromodoris
+namespace Chromodoris.Components
 {
     public class VoxelSampleDual : GH_Component
     {

@@ -5,7 +5,7 @@ using KDSharp.KDTree;
 
 using Rhino.Geometry;
 
-namespace Chromodoris
+namespace Chromodoris.IsoSurfacing
 {
     internal class KDTreePtCloud
     {

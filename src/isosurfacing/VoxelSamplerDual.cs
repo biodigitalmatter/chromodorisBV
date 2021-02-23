@@ -34,7 +34,7 @@ using Grasshopper.Kernel.Types;
 
 using Rhino.Geometry;
 
-namespace Chromodoris
+namespace Chromodoris.IsoSurfacing
 {
     internal struct DimensionValues
     {

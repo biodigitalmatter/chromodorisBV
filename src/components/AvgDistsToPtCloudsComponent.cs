@@ -30,13 +30,15 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Chromodoris.IsoSurfacing;
+
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 
 using Rhino.Geometry;
 
-namespace Chromodoris
+namespace Chromodoris.Components
 {
     public class AvgDistsToPtCloudsComponent : GH_TaskCapableComponent<
         AvgDistsToPtCloudsComponent.SolveResults>
@@ -160,7 +162,8 @@ namespace Chromodoris
         }
 
         private static SolveResults ComputeAvgDist(
-            Point3d searchPt, KDTreePtCloud[] ptClouds, int nToAveragePerDistance
+            Point3d searchPt, IEnumerable<KDTreePtCloud> ptClouds,
+            int nToAveragePerDistance
         )
         {
             // Don't make this PLINQ since this method is already running in parallel
