@@ -26,6 +26,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 
@@ -33,6 +34,7 @@ using Chromodoris.IsoSurfacing;
 using Chromodoris.Properties;
 
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 
 using Rhino.Geometry;
 
@@ -166,14 +168,35 @@ namespace Chromodoris.Components
                 new VoxelSamplerDual(ptCloud1, ptCloud2, box, xr, yr, zr, zyx);
             sampler.ExecuteMultiThreaded();
 
-            IEnumerable<VoxelSamplerDual.GHVoxelData> voxelData =
-                sampler.GHVoxelDataList;
+            var voxelDataList =
+                sampler.GHVoxelDataList as List<VoxelSamplerDual.GHVoxelData>;
+
+            if (voxelDataList is null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Empty result list.");
+            }
+
+            // ReSharper disable once PossibleNullReferenceException
+            int voxelDataCount = voxelDataList.Count;
+
+            var distFactors = new List<GH_Number>(voxelDataCount);
+            var distsPtCloud1 = new List<GH_Number>(voxelDataCount);
+            var distsPtCloud2 = new List<GH_Number>(voxelDataCount);
+            var centerPts = new List<GH_Point>(voxelDataCount);
+
+            foreach (VoxelSamplerDual.GHVoxelData voxelData in voxelDataList)
+            {
+                distFactors.Add(voxelData.DistFactor);
+                distsPtCloud1.Add(voxelData.DistPtCloud1);
+                distsPtCloud2.Add(voxelData.DistPtCloud2);
+                centerPts.Add(voxelData.CenterPt);
+            }
 
             _ = da.SetData(_outBIdx, sampler.BBox);
-            _ = da.SetDataList(_outFIdx, voxelData.Select(x => x.DistFactor));
-            _ = da.SetDataList(_outD1Idx, voxelData.Select(x => x.DistPtCloud1));
-            _ = da.SetDataList(_outD2Idx, voxelData.Select(x => x.DistPtCloud2));
-            _ = da.SetDataList(_outPIdx, voxelData.Select(x => x.CenterPt));
+            _ = da.SetDataList(_outFIdx, distFactors);
+            _ = da.SetDataList(_outD1Idx, distsPtCloud1);
+            _ = da.SetDataList(_outD2Idx, distsPtCloud2);
+            _ = da.SetDataList(_outPIdx, centerPts);
         }
     }
 }
