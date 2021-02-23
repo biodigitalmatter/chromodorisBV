@@ -12,12 +12,14 @@ namespace Chromodoris
         internal KDTreePtCloud(IEnumerable<Point3d> inPts)
         {
             Pts = new List<Point3d>(inPts);
-            Tree = new KDTree<int>(3, Pts.Count);
+            Tree = new KDTree<int>(3);
 
             for (var i = 0; i < Pts.Count; i++)
             {
                 Tree.AddPoint(Point3dToDoubleArray(Pts[i]), i);
             }
+
+            Tree.TrimExcess();
         }
 
         // Could be made public if needed
