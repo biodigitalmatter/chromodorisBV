@@ -42,10 +42,10 @@ namespace Chromodoris.Components
         /// <summary>
         /// Initializes a new instance of the IsoMesh class.
         /// </summary>
-        public IsosurfaceFromListComponent()
-          : base("Build IsoSurface from list", "IsoSurfaceFromList",
-              "Constructs a 3D isosurface from voxel data in a flat list and a box.",
-              "ChromodorisBV", "Isosurface")
+        public IsosurfaceFromListComponent() : base("Build IsoSurface from list",
+            "IsoSurfaceFromList",
+            "Constructs a 3D isosurface from voxel data in a flat list and a box.",
+            "ChromodorisBV", "Isosurface")
         {
         }
 
@@ -61,17 +61,18 @@ namespace Chromodoris.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            _inBIdx = pManager.AddBoxParameter("Box", "B", "The bounding box.", GH_ParamAccess.item);
-            _inDIdx = pManager.AddNumberParameter("Voxel Data", "D", "Voxelization data formatted as double[x,y,z].",
-                GH_ParamAccess.list);
-            _inVIdx = pManager.AddNumberParameter("Sample Value", "V", "The value to sample at, ie. IsoValue",
+            _inBIdx = pManager.AddBoxParameter("Box", "B", "The bounding box.",
                 GH_ParamAccess.item);
-            _inXIdx = pManager.AddIntegerParameter("X resolution", "X", "X resolution of bounding box",
-                GH_ParamAccess.item);
-            _inYIdx = pManager.AddIntegerParameter("Y resolution", "Y", "Y resolution of bounding box",
-                GH_ParamAccess.item);
-            _inZIdx = pManager.AddIntegerParameter("Z resolution", "Z", "Z resolution of bounding box",
-                GH_ParamAccess.item);
+            _inDIdx = pManager.AddNumberParameter("Voxel Data", "D",
+                "Voxelization data formatted as double[x,y,z].", GH_ParamAccess.list);
+            _inVIdx = pManager.AddNumberParameter("Sample Value", "V",
+                "The value to sample at, ie. IsoValue", GH_ParamAccess.item);
+            _inXIdx = pManager.AddIntegerParameter("X resolution", "X",
+                "X resolution of bounding box", GH_ParamAccess.item);
+            _inYIdx = pManager.AddIntegerParameter("Y resolution", "Y",
+                "Y resolution of bounding box", GH_ParamAccess.item);
+            _inZIdx = pManager.AddIntegerParameter("Z resolution", "Z",
+                "Z resolution of bounding box", GH_ParamAccess.item);
         }
 
         private int _outMIdx;
@@ -81,7 +82,8 @@ namespace Chromodoris.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            _outMIdx = pManager.AddMeshParameter("IsoSurface", "M", "The generated isosurface.", GH_ParamAccess.item);
+            _outMIdx = pManager.AddMeshParameter("IsoSurface", "M",
+                "The generated isosurface.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -98,13 +100,23 @@ namespace Chromodoris.Components
             var resY = 0;
             var resZ = 0;
 
-            if (!da.GetData(_inBIdx, ref box)) return;
-            if (!da.GetDataList(_inDIdx, voxelData)) return;
+            var requiredDataGotten = new List<bool>
+            {
+                da.GetData(_inBIdx, ref box),
+                da.GetDataList(_inDIdx, voxelData),
+                da.GetData(_inBIdx, ref box),
+                da.GetData(_inVIdx, ref isoValue),
+                da.GetData(_inXIdx, ref resX),
+                da.GetData(_inYIdx, ref resY),
+                da.GetData(_inZIdx, ref resZ),
+            };
 
-            if (!da.GetData(_inVIdx, ref isoValue)) return;
-            if (!da.GetData(_inXIdx, ref resX)) return;
-            if (!da.GetData(_inYIdx, ref resY)) return;
-            if (!da.GetData(_inZIdx, ref resZ)) return;
+            // Check if any of the required parameters where not given
+            if (requiredDataGotten.Any(x => x is false))
+            {
+                return;
+            }
+
             List<float> floatVoxelData = voxelData.Select(x => (float)x).ToList();
 
             var vs = new VolumetricSpace(floatVoxelData, resX, resY, resZ);
@@ -125,18 +137,18 @@ namespace Chromodoris.Components
         /// <summary>
         ///     Gets the unique ID for this component. Do not change this ID after release.
         /// </summary>
-        public override Guid ComponentGuid => new Guid("{845E601C-7FA3-476D-B4A6-8AF2331B40E8}");
+        public override Guid ComponentGuid =>
+            new Guid("{845E601C-7FA3-476D-B4A6-8AF2331B40E8}");
 
         private static void TransformMesh(Mesh mesh, Box box, float[,,] data)
         {
-
-
             int x = data.GetLength(0) - 1;
             int y = data.GetLength(1) - 1;
             int z = data.GetLength(2) - 1;
 
 
-            var gridBox = new Box(Plane.WorldXY, new Interval(0, x), new Interval(0, y), new Interval(0, z));
+            var gridBox = new Box(Plane.WorldXY, new Interval(0, x), new Interval(0, y),
+                new Interval(0, z));
             gridBox.RepositionBasePlane(gridBox.Center);
 
             Transform trans = Transform.PlaneToPlane(gridBox.Plane, box.Plane);
