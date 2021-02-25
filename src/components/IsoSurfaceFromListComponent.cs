@@ -29,53 +29,68 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
+using Chromodoris.IsoSurfacing;
 using Chromodoris.Properties;
 
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 
 using Rhino.Geometry;
 
 namespace Chromodoris.Components
 {
+    // ReSharper disable once UnusedType.Global
     public class IsosurfaceFromListComponent : GH_Component
     {
+        private int _inBIdx;
+        private int _inIIdx;
+        private int _inNXIdx;
+        private int _inNYIdx;
+        private int _inNZIdx;
+        private int _inVIdx;
+
+        private int _outMIdx;
+
         /// <summary>
-        /// Initializes a new instance of the IsoMesh class.
+        ///     Initializes a new instance of the IsoMesh class.
         /// </summary>
-        public IsosurfaceFromListComponent() : base("Build IsoSurface from list",
+        public IsosurfaceFromListComponent() : base("Build isosurface from list",
             "IsoSurfaceFromList",
             "Constructs a 3D isosurface from voxel data in a flat list and a box.",
             "ChromodorisBV", "Isosurface")
         {
         }
 
-        private int _inBIdx;
-        private int _inDIdx;
-        private int _inVIdx;
-        private int _inXIdx;
-        private int _inYIdx;
-        private int _inZIdx;
+        /// <summary>
+        ///     Provides an Icon for the component.
+        /// </summary>
+        protected override Bitmap Icon => Resources.Icon_Isosurface;
+
+        // return null;
+        /// <summary>
+        ///     Gets the unique ID for this component. Do not change this ID after release.
+        /// </summary>
+        public override Guid ComponentGuid =>
+            new Guid("{845E601C-7FA3-476D-B4A6-8AF2331B40E8}");
 
         /// <summary>
         ///     Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            _inBIdx = pManager.AddBoxParameter("Box", "B", "The bounding box.",
+            _inVIdx = pManager.AddNumberParameter("Values", "V",
+                "Distance values in a flat, XYZ ordered list.", GH_ParamAccess.list);
+            _inBIdx = pManager.AddBoxParameter("BBox", "B", "Bounding box.",
                 GH_ParamAccess.item);
-            _inDIdx = pManager.AddNumberParameter("Voxel Data", "D",
-                "Voxelization data formatted as double[x,y,z].", GH_ParamAccess.list);
-            _inVIdx = pManager.AddNumberParameter("Sample Value", "V",
-                "The value to sample at, ie. IsoValue", GH_ParamAccess.item);
-            _inXIdx = pManager.AddIntegerParameter("X resolution", "X",
-                "X resolution of bounding box", GH_ParamAccess.item);
-            _inYIdx = pManager.AddIntegerParameter("Y resolution", "Y",
-                "Y resolution of bounding box", GH_ParamAccess.item);
-            _inZIdx = pManager.AddIntegerParameter("Z resolution", "Z",
-                "Z resolution of bounding box", GH_ParamAccess.item);
+            _inNXIdx = pManager.AddIntegerParameter("Number X", "NX",
+                "Number of voxels along X axis", GH_ParamAccess.item);
+            _inNYIdx = pManager.AddIntegerParameter("Number Y", "NY",
+                "Number of voxels along X axis", GH_ParamAccess.item);
+            _inNZIdx = pManager.AddIntegerParameter("Number Z", "NZ",
+                "Number of voxels along X axis", GH_ParamAccess.item);
+            _inIIdx = pManager.AddNumberParameter("Isovalue", "I",
+                "Value for the isosurface", GH_ParamAccess.item);
         }
-
-        private int _outMIdx;
 
         /// <summary>
         ///     Registers all the output parameters for this component.
@@ -93,22 +108,21 @@ namespace Chromodoris.Components
         protected override void SolveInstance(IGH_DataAccess da)
         {
             var box = new Box();
-            double isoValue = 0;
-            var voxelData = new List<double>();
+            var isoValue = 0.0;
+            var voxelData = new List<GH_Number>();
 
-            var resX = 0;
-            var resY = 0;
-            var resZ = 0;
+            var xRes = 0;
+            var yRes = 0;
+            var zRes = 0;
 
             var requiredDataGotten = new List<bool>
             {
+                da.GetDataList(_inVIdx, voxelData),
                 da.GetData(_inBIdx, ref box),
-                da.GetDataList(_inDIdx, voxelData),
-                da.GetData(_inBIdx, ref box),
-                da.GetData(_inVIdx, ref isoValue),
-                da.GetData(_inXIdx, ref resX),
-                da.GetData(_inYIdx, ref resY),
-                da.GetData(_inZIdx, ref resZ),
+                da.GetData(_inNXIdx, ref xRes),
+                da.GetData(_inNYIdx, ref yRes),
+                da.GetData(_inNZIdx, ref zRes),
+                da.GetData(_inIIdx, ref isoValue),
             };
 
             // Check if any of the required parameters where not given
@@ -117,46 +131,40 @@ namespace Chromodoris.Components
                 return;
             }
 
-            List<float> floatVoxelData = voxelData.Select(x => (float)x).ToList();
+            float[,,] isoData = UnflattenListTo3D(
+                voxelData.ConvertAll(GH_NumberToFloatConverter()), xRes, yRes, zRes);
 
-            var vs = new VolumetricSpace(floatVoxelData, resX, resY, resZ);
-            var isosurface = new HashIsoSurface(vs);
-            var mesh = new Mesh();
+            var isoSurfacer = new IsoSurfacer(isoData, isoValue, box);
 
-            isosurface.computeSurfaceMesh(isoValue, ref mesh);
-            TransformMesh(mesh, box, vs.IsoData);
-            da.SetData(_outMIdx, mesh);
+            da.SetData(_outMIdx, isoSurfacer.GenerateSurfaceMesh());
         }
 
-        /// <summary>
-        ///     Provides an Icon for the component.
-        /// </summary>
-        protected override Bitmap Icon => Resources.Icon_Isosurface;
-
-        // return null;
-        /// <summary>
-        ///     Gets the unique ID for this component. Do not change this ID after release.
-        /// </summary>
-        public override Guid ComponentGuid =>
-            new Guid("{845E601C-7FA3-476D-B4A6-8AF2331B40E8}");
-
-        private static void TransformMesh(Mesh mesh, Box box, float[,,] data)
+        private static Converter<GH_Number, float> GH_NumberToFloatConverter()
         {
-            int x = data.GetLength(0) - 1;
-            int y = data.GetLength(1) - 1;
-            int z = data.GetLength(2) - 1;
+            return x => (float)x.Value;
+        }
 
+        private static T[,,] UnflattenListTo3D<T>(
+            IList<T> list, int xRes, int yRes, int zRes
+        )
+        {
+            var array = new T[xRes, yRes, zRes];
+            var listIdx = 0;
 
-            var gridBox = new Box(Plane.WorldXY, new Interval(0, x), new Interval(0, y),
-                new Interval(0, z));
-            gridBox.RepositionBasePlane(gridBox.Center);
+            for (var x = 0; x < xRes; x++)
+            {
+                for (var y = 0; y < yRes; y++)
+                {
+                    for (var z = 0; z < zRes; z++)
+                    {
+                        array[x, y, z] = list[listIdx];
 
-            Transform trans = Transform.PlaneToPlane(gridBox.Plane, box.Plane);
-            trans *= Transform.Scale(gridBox.Plane, box.X.Length / gridBox.X.Length,
-                box.Y.Length / gridBox.Y.Length, box.Z.Length / gridBox.Z.Length);
+                        listIdx++;
+                    }
+                }
+            }
 
-            mesh.Transform(trans);
-            mesh.Faces.CullDegenerateFaces();
+            return array;
         }
     }
 }

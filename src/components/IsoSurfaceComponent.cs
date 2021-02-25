@@ -22,125 +22,96 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+
+using Chromodoris.IsoSurfacing;
+using Chromodoris.Properties;
 
 using Grasshopper.Kernel;
 
 using Rhino.Geometry;
 
-namespace Chromodoris
+namespace Chromodoris.Components
 {
+    // ReSharper disable once UnusedType.Global
     public class IsosurfaceComponent : GH_Component
     {
+        private int _inBIdx;
+        private int _inDIdx;
+        private int _inVIdx;
+        private int _outMIdx;
+
         /// <summary>
-        /// Initializes a new instance of the IsoMesh class.
+        ///     Initializes a new instance of the IsoMesh class.
         /// </summary>
-        public IsosurfaceComponent()
-          : base("Build IsoSurface", "IsoSurface",
-              "Constructs a 3D isosurface from voxel data (float[x,y,z]) and a box.",
-              "ChromodorisBV", "Isosurface")
+        public IsosurfaceComponent() : base("Build IsoSurface", "IsoSurface",
+            "Constructs a 3D isosurface from voxel data (float[x,y,z]) and a box.",
+            "ChromodorisBV", "Isosurface")
         {
         }
 
         /// <summary>
-        /// Registers all the input parameters for this component.
+        ///     Provides an Icon for the component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override Bitmap Icon =>
+            Resources.Icon_Isosurface;
+
+        /// <summary>
+        ///     Gets the unique ID for this component. Do not change this ID after release.
+        /// </summary>
+        public override Guid ComponentGuid =>
+            new Guid("{8726c6b0-f222-4fd9-9882-dd0cd0067988}");
+
+        /// <summary>
+        ///     Registers all the input parameters for this component.
+        /// </summary>
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddBoxParameter("Box", "B", "The bounding box.", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Voxel Data", "D", "Voxelization data formatted as double[x,y,z].", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Sample Value", "V", "The value to sample at, ie. IsoValue", GH_ParamAccess.item);
-            //pManager.AddBooleanParameter("Merge Vertices", "M", "Combine (weld) the mesh.", GH_ParamAccess.item, true);
-            //pManager[3].Optional = true;
+            _inBIdx = pManager.AddBoxParameter("Box", "B", "The bounding box.",
+                GH_ParamAccess.item);
+            _inDIdx = pManager.AddGenericParameter("Voxel Data", "D",
+                "Voxelization data formatted as double[x,y,z].", GH_ParamAccess.item);
+            _inVIdx = pManager.AddNumberParameter("Sample Value", "V",
+                "The value to sample at, ie. IsoValue", GH_ParamAccess.item);
         }
 
         /// <summary>
-        /// Registers all the output parameters for this component.
+        ///     Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddMeshParameter("IsoSurface", "M", "The generated isosurface.", GH_ParamAccess.item);
+            _outMIdx = pManager.AddMeshParameter("IsoSurface", "M",
+                "The generated isosurface.", GH_ParamAccess.item);
         }
 
         /// <summary>
-        /// This is the method that actually does the work.
+        ///     This is the method that actually does the work.
         /// </summary>
-        /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
-        protected override void SolveInstance(IGH_DataAccess DA)
+        /// <param name="da">The DA object is used to retrieve from inputs and store in outputs.</param>
+        protected override void SolveInstance(IGH_DataAccess da)
         {
-            Box box = new Box();
-            //bool merge = true;
-            double isovalue = 0;
+            var box = new Box();
+            var isoValue = 0.0;
             float[,,] voxelData = null;
 
-            if (!DA.GetData(0, ref box))
+            var requiredDataGotten = new List<bool>
+            {
+                da.GetData(_inBIdx, ref box),
+                da.GetData(_inDIdx, ref voxelData),
+                da.GetData(_inVIdx, ref isoValue),
+            };
+
+            // Check if any of the required parameters where not given
+            if (requiredDataGotten.Any(x => x is false))
             {
                 return;
             }
 
-            if (!DA.GetData(1, ref voxelData))
-            {
-                return;
-            }
+            var isoSurfacer = new IsoSurfacer(voxelData, isoValue, box);
 
-            if (!DA.GetData(2, ref isovalue))
-            {
-                return;
-            }
-            //DA.GetData(3, ref merge);
-
-
-            VolumetricSpace vs = new VolumetricSpace(voxelData);
-            HashIsoSurface isosurface = new HashIsoSurface(vs);
-            Rhino.Geometry.Mesh mesh = new Rhino.Geometry.Mesh();
-
-            isosurface.computeSurfaceMesh(isovalue, ref mesh);
-            transformMesh(mesh, box, voxelData);
-            DA.SetData(0, mesh);
-
-            voxelData = null;
-            vs = null;
-            isosurface = null;
-        }
-
-        /// <summary>
-        /// Provides an Icon for the component.
-        /// </summary>
-        protected override System.Drawing.Bitmap Icon
-        {
-            get
-            {
-                //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return Chromodoris.Properties.Resources.Icon_Isosurface;
-                // return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the unique ID for this component. Do not change this ID after release.
-        /// </summary>
-        public override Guid ComponentGuid
-        {
-            get { return new Guid("{8726c6b0-f222-4fd9-9882-dd0cd0067988}"); }
-        }
-
-        public void transformMesh(Rhino.Geometry.Mesh mesh, Box _box, float[,,] data)
-        {
-
-
-            int x = data.GetLength(0) - 1;
-            int y = data.GetLength(1) - 1;
-            int z = data.GetLength(2) - 1;
-
-
-            Box gridBox = new Box(Plane.WorldXY, new Interval(0, x), new Interval(0, y), new Interval(0, z));
-            gridBox.RepositionBasePlane(gridBox.Center);
-
-            var trans = Transform.PlaneToPlane(gridBox.Plane, _box.Plane);
-            trans = trans * Transform.Scale(gridBox.Plane, _box.X.Length / gridBox.X.Length, _box.Y.Length / gridBox.Y.Length, _box.Z.Length / gridBox.Z.Length);
-
-            mesh.Transform(trans);
-            mesh.Faces.CullDegenerateFaces();
+            da.SetData(_outMIdx, isoSurfacer.GenerateSurfaceMesh());
         }
     }
 }
