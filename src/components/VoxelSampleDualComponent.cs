@@ -167,23 +167,14 @@ namespace Chromodoris.Components
                 new VoxelSamplerDual(ptCloud1, ptCloud2, box, xr, yr, zr, zyx);
             sampler.ExecuteMultiThreaded();
 
-            var voxelDataList =
-                sampler.GHVoxelDataList as List<VoxelSamplerDual.GHVoxelData>;
-
-            if (voxelDataList is null)
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Empty result list.");
-            }
-
-            // ReSharper disable once PossibleNullReferenceException
-            int voxelDataCount = voxelDataList.Count;
+            int voxelDataCount = sampler.NVoxels;
 
             var distFactors = new List<GH_Number>(voxelDataCount);
             var distsPtCloud1 = new List<GH_Number>(voxelDataCount);
             var distsPtCloud2 = new List<GH_Number>(voxelDataCount);
             var centerPts = new List<GH_Point>(voxelDataCount);
 
-            foreach (VoxelSamplerDual.GHVoxelData voxelData in voxelDataList)
+            foreach (VoxelSamplerDual.GHVoxelData voxelData in sampler.GHVoxelDataList)
             {
                 distFactors.Add(voxelData.DistFactor);
                 distsPtCloud1.Add(voxelData.DistPtCloud1);

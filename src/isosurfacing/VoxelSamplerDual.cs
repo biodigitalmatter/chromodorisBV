@@ -98,6 +98,9 @@ namespace Chromodoris.IsoSurfacing
         internal IEnumerable<GHVoxelData> GHVoxelDataList =>
             _ghVoxelData.SelectMany(x => x);
 
+        internal int NVoxels => _outputOrderedDimVals.Select(x => x.NVoxels)
+            .Aggregate((a, x) => a * x);
+
         private Point3d OutputOrderedCoordsToPoint3d(IReadOnlyList<double> coords) =>
             !_zyx
                 ? new Point3d(coords[0], coords[1], coords[2])
