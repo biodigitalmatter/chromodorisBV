@@ -38,7 +38,7 @@ using Rhino.Geometry;
 
 namespace Chromodoris.Components
 {
-    public class VoxelSampleDual : GH_Component
+    public class VoxelSamplerDualComponent : GH_Component
     {
         private int _inBIdx;
         private int _inP1Idx;
@@ -55,9 +55,10 @@ namespace Chromodoris.Components
 
 
         /// <summary>
-        ///     Initializes a new instance of the VoxelSampleDual class.
+        ///     Initializes a new instance of the VoxelSamplerDualComponent class.
         /// </summary>
-        public VoxelSampleDual() : base("Sample Voxels (Dual)", "VoxelSample(D)",
+        public VoxelSamplerDualComponent() : base("Sample Voxels (Dual)",
+            "VoxelSample(D)",
             "Construct and sample a voxel grid from two point cloud affecting each other.",
             "ChromodorisBV", "Isosurface")
         {
