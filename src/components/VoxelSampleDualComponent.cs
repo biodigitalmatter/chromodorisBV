@@ -33,7 +33,6 @@ using Chromodoris.IsoSurfacing;
 using Chromodoris.Properties;
 
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Types;
 
 using Rhino.Geometry;
 
@@ -165,28 +164,13 @@ namespace Chromodoris.Components
 
             var sampler =
                 new VoxelSamplerDual(ptCloud1, ptCloud2, box, xr, yr, zr, zyx);
-            sampler.ExecuteMultiThreaded();
-
-            int voxelDataCount = sampler.NVoxels;
-
-            var distFactors = new List<GH_Number>(voxelDataCount);
-            var distsPtCloud1 = new List<GH_Number>(voxelDataCount);
-            var distsPtCloud2 = new List<GH_Number>(voxelDataCount);
-            var centerPts = new List<GH_Point>(voxelDataCount);
-
-            foreach (VoxelSamplerDual.GHVoxelData voxelData in sampler.GHVoxelDataList)
-            {
-                distFactors.Add(voxelData.DistFactor);
-                distsPtCloud1.Add(voxelData.DistPtCloud1);
-                distsPtCloud2.Add(voxelData.DistPtCloud2);
-                centerPts.Add(voxelData.CenterPt);
-            }
+            SamplerResults results = sampler.Sample();
 
             _ = da.SetData(_outBIdx, sampler.BBox);
-            _ = da.SetDataList(_outFIdx, distFactors);
-            _ = da.SetDataList(_outD1Idx, distsPtCloud1);
-            _ = da.SetDataList(_outD2Idx, distsPtCloud2);
-            _ = da.SetDataList(_outPIdx, centerPts);
+            _ = da.SetDataList(_outFIdx, results.DistFactors);
+            _ = da.SetDataList(_outD1Idx, results.DistsPtCloud1);
+            _ = da.SetDataList(_outD2Idx, results.DistsPtCloud2);
+            _ = da.SetDataList(_outPIdx, results.CenterPts);
         }
     }
 }

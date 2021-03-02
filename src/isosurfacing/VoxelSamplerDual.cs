@@ -24,7 +24,6 @@
  *
  */
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,19 +35,10 @@ using Rhino.Geometry;
 
 namespace Chromodoris.IsoSurfacing
 {
-    internal struct DimensionValues
-    {
-        public int NVoxels;
-        public double MinCoord;
-        public double StepSize;
-    }
-
     internal class VoxelSamplerDual
     {
-        private readonly List<GHVoxelData>[] _ghVoxelData;
-        private readonly List<DimensionValues> _outputOrderedDimVals;
         private readonly KDTreePtCloud[] _ptClouds;
-        private readonly List<Point3d>[] _voxelPts;
+        private readonly SparseVoxelGrid<DualSamplerVoxelData> _voxelGrid;
         private readonly bool _zyx;
 
         internal VoxelSamplerDual(
@@ -59,134 +49,93 @@ namespace Chromodoris.IsoSurfacing
             _ptClouds = new[]
                 { new KDTreePtCloud(ptCloud1), new KDTreePtCloud(ptCloud2) };
 
-            BBox = box;
-
-            var xVals = new DimensionValues
-            {
-                NVoxels = resX,
-                MinCoord = BBox.X.Min,
-                StepSize = (BBox.X.Max - BBox.X.Min) / (resX - 1),
-            };
-            var yVals = new DimensionValues
-            {
-                NVoxels = resY,
-                MinCoord = BBox.Y.Min,
-                StepSize = (BBox.Y.Max - BBox.Y.Min) / (resY - 1),
-            };
-            var zVals = new DimensionValues
-            {
-                NVoxels = resZ,
-                MinCoord = BBox.Z.Min,
-                StepSize = (BBox.Z.Max - BBox.Z.Min) / (resZ - 1),
-            };
-
-            _outputOrderedDimVals = new List<DimensionValues> { xVals, yVals, zVals };
-            if (zyx)
-            {
-                _outputOrderedDimVals.Reverse();
-            }
-
+            _voxelGrid =
+                new SparseVoxelGrid<DualSamplerVoxelData>(box, resX, resY, resZ);
             _zyx = zyx;
-
-            _ghVoxelData = new List<GHVoxelData>[_outputOrderedDimVals[0].NVoxels];
-            _voxelPts = new List<Point3d>[_outputOrderedDimVals[0].NVoxels];
         }
 
-        internal Box BBox { get; }
+        internal Box BBox => _voxelGrid.BBox;
 
-        // Flat list
-        internal IEnumerable<GHVoxelData> GHVoxelDataList =>
-            _ghVoxelData.SelectMany(x => x);
+        private int NVoxels => _voxelGrid.Count;
 
-        internal int NVoxels => _outputOrderedDimVals.Select(x => x.NVoxels)
-            .Aggregate((a, x) => a * x);
-
-        private Point3d OutputOrderedCoordsToPoint3d(IReadOnlyList<double> coords) =>
-            !_zyx
-                ? new Point3d(coords[0], coords[1], coords[2])
-                : new Point3d(coords[2], coords[1], coords[0]);
-
-        private Tuple<double, double, double> GetVoxelValues(Point3d voxelPt)
+        private void SetVoxelValues(int idx)
         {
-            double voxelDist1 = _ptClouds[0].GetClosestPtDistance(voxelPt);
-            double voxelDist2 = _ptClouds[1].GetClosestPtDistance(voxelPt);
+            Point3d centerPt = _voxelGrid.GetPt(idx);
+            double distPtCloud1 = _ptClouds[0].GetClosestPtDistance(centerPt);
+            double distPtCloud2 = _ptClouds[1].GetClosestPtDistance(centerPt);
 
-            double sumDist = voxelDist1 + voxelDist2;
-            double val = voxelDist1 / sumDist;
+            double sumDist = distPtCloud1 + distPtCloud2;
+            double distFactor = distPtCloud1 / sumDist;
 
-            return new Tuple<double, double, double>(val, voxelDist1, voxelDist2);
+            _voxelGrid.SetValue(
+                new DualSamplerVoxelData(distFactor, distPtCloud1, distPtCloud2), idx);
         }
 
-        internal void ExecuteMultiThreaded()
+        internal SamplerResults Sample()
         {
-            _ = Parallel.ForEach(
-                Partitioner.Create(0, _outputOrderedDimVals[0].NVoxels), (range, _) =>
-                {
-                    for (int i = range.Item1; i < range.Item2; i++)
-                    {
-                        SetVoxelValuesForSlice(i);
-                    }
-                });
-        }
-
-
-        private void SetVoxelValuesForSlice(int primaryDimIdx)
-        {
-            double GetCoord(int idx, DimensionValues dim) =>
-                dim.MinCoord + idx * dim.StepSize;
-
-            // Lists specific to slice to avoid race conditions
-            _ghVoxelData[primaryDimIdx] = new List<GHVoxelData>();
-            _voxelPts[primaryDimIdx] = new List<Point3d>();
-
-            // Initialize once
-
-            var outputOrderedCoords = new double[3];
-
-            outputOrderedCoords[0] = GetCoord(primaryDimIdx, _outputOrderedDimVals[0]);
-            for (var secondaryDimIdx = 0;
-                secondaryDimIdx < _outputOrderedDimVals[1].NVoxels;
-                secondaryDimIdx++)
+            _ = Parallel.ForEach(Partitioner.Create(0, NVoxels), (range, _) =>
             {
-                outputOrderedCoords[1] =
-                    GetCoord(secondaryDimIdx, _outputOrderedDimVals[1]);
-                for (var tertiaryDimIdx = 0;
-                    tertiaryDimIdx < _outputOrderedDimVals[2].NVoxels;
-                    tertiaryDimIdx++)
+                for (int i = range.Item1; i < range.Item2; i++)
                 {
-                    outputOrderedCoords[2] =
-                        GetCoord(tertiaryDimIdx, _outputOrderedDimVals[2]);
-
-                    Point3d voxelPt = OutputOrderedCoordsToPoint3d(outputOrderedCoords);
-                    Tuple<double, double, double> distData = GetVoxelValues(voxelPt);
-
-                    _ghVoxelData[primaryDimIdx].Add(new GHVoxelData(voxelPt,
-                        distData.Item1, distData.Item2, distData.Item3));
+                    SetVoxelValues(i);
                 }
-            }
-        }
+            });
 
-        // Struct storing voxel values as GH_* types.
-        // At the moment they are only used when setting component outputs, if they
-        // need to be used outside of that context just change it to a struct with
-        // doubles and either convert implicitly or using a computed property.
-        internal readonly struct GHVoxelData
+            var results = new SamplerResults();
+
+            IEnumerable<Point3d> ptEnumerable =
+                !_zyx ? _voxelGrid.VoxelPtsList : _voxelGrid.PtsOrderedByZYX;
+
+            results.CenterPts =
+                from pt in ptEnumerable
+                select new GH_Point(pt);
+
+            IEnumerable<DualSamplerVoxelData> dataEnumerable =
+                !_zyx ? _voxelGrid : _voxelGrid.DataOrderedByZYX;
+            // To avoid multiple enumerations
+            List<DualSamplerVoxelData> dataList = dataEnumerable.ToList();
+
+            results.DistFactors =
+                from data in dataList
+                select new GH_Number(data.Value);
+
+            results.DistsPtCloud1 =
+                from data in dataList
+                select new GH_Number(data.DistPtCloud1);
+
+            results.DistsPtCloud2 =
+                from data in dataList
+                select new GH_Number(data.DistPtCloud2);
+
+            return results;
+        }
+    }
+
+    internal class SamplerResults
+    {
+        public IEnumerable<GH_Point> CenterPts { get; set; }
+        public IEnumerable<GH_Number> DistFactors { get; set; }
+        public IEnumerable<GH_Number> DistsPtCloud1 { get; set; }
+        public IEnumerable<GH_Number> DistsPtCloud2 { get; set; }
+    }
+
+    public class DualSamplerVoxelData : VoxelData
+    {
+        public DualSamplerVoxelData()
         {
-            internal GHVoxelData(
-                Point3d centerPt, double distFactor, double distPtCloud1,
-                double distPtCloud2
-            )
-            {
-                CenterPt = new GH_Point(centerPt);
-                DistFactor = new GH_Number(distFactor);
-                DistPtCloud1 = new GH_Number(distPtCloud1);
-                DistPtCloud2 = new GH_Number(distPtCloud2);
-            }
-
-            internal GH_Point CenterPt { get; }
-            internal GH_Number DistFactor { get; }
-            internal GH_Number DistPtCloud1 { get; }
-            internal GH_Number DistPtCloud2 { get; }
+            DistPtCloud1 = double.NaN;
+            DistPtCloud1 = double.NaN;
         }
+
+        public DualSamplerVoxelData(
+            double value, double distPtCloud1, double distPtCloud2
+        ) : base(value)
+        {
+            DistPtCloud1 = distPtCloud1;
+            DistPtCloud2 = distPtCloud2;
+        }
+
+        public double DistPtCloud1 { get; }
+        public double DistPtCloud2 { get; }
     }
 }

@@ -9,18 +9,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using GH_IO.Types;
-
 using Rhino.Geometry;
 
 namespace Chromodoris.IsoSurfacing
 {
     internal class IsoSurfacer
     {
+        private readonly Box _bBox;
+        private readonly float[,,] _isoData;
         private readonly double _isoValue;
         private short[] _cellIndexCache, _prevCellIndexCache;
         private Dictionary<int, int> _edgeVertices; // int2 is face index
-
 
         public IsoSurfacer(float[,,] isoData, double isoValue, Box bBox)
         {
@@ -34,13 +33,14 @@ namespace Chromodoris.IsoSurfacing
             ResetEdgeVerticesDict();
         }
 
-        private readonly float[,,] _isoData;
-        private readonly Box _bBox;
-
         private int XRes => _isoData.GetLength(0);
         private int YRes => _isoData.GetLength(1);
         private int ZRes => _isoData.GetLength(2);
         private int SliceRes => XRes * YRes;
+
+        private Box GridBox =>
+            new Box(Plane.WorldXY, new Interval(0, XRes - 1), new Interval(0, YRes - 1),
+                new Interval(0, ZRes - 1));
 
         private double GetVoxelAt(int index)
         {
@@ -193,9 +193,10 @@ namespace Chromodoris.IsoSurfacing
             int minIndex = sliceOffset * 3;
 
 
-            List<int> toRemove = (from entry in _edgeVertices
-                                  where entry.Key < minIndex
-                                  select entry.Key).ToList();
+            List<int> toRemove = (
+                from entry in _edgeVertices
+                where entry.Key < minIndex
+                select entry.Key).ToList();
 
             foreach (int dat in toRemove)
             {
@@ -261,11 +262,7 @@ namespace Chromodoris.IsoSurfacing
             _edgeVertices = new Dictionary<int, int>(XRes * YRes * 10);
         }
 
-        private Box GridBox =>
-            new Box(Plane.WorldXY, new Interval(0, XRes - 1), new Interval(0, YRes - 1),
-                new Interval(0, ZRes - 1));
-
-        internal static Transform BoxToBox(in Box source, in Box target)
+        private static Transform BoxToBox(in Box source, in Box target)
         {
             var sourceCenterPlane = new Plane(source.Center, source.Plane.XAxis,
                 source.Plane.YAxis);
@@ -277,25 +274,6 @@ namespace Chromodoris.IsoSurfacing
             Transform scale = Transform.Scale(sourceCenterPlane,
                 target.X.Length / source.X.Length, target.Y.Length / source.Y.Length,
                 target.Z.Length / source.Z.Length);
-
-            return planeToPlane * scale;
-        }
-
-        private Transform CreateXformFromGridBoxToBBox()
-        {
-            var gridBox = new Box(Plane.WorldXY, new Interval(0, XRes - 1),
-                new Interval(0, YRes - 1), new Interval(0, ZRes - 1));
-
-            var gridBoxCenterPlane = new Plane(gridBox.Center, gridBox.Plane.XAxis,
-                gridBox.Plane.YAxis);
-            var bBoxCenterPlane =
-                new Plane(_bBox.Center, _bBox.Plane.XAxis, _bBox.Plane.YAxis);
-
-            Transform planeToPlane =
-                Transform.PlaneToPlane(gridBoxCenterPlane, bBoxCenterPlane);
-            Transform scale = Transform.Scale(gridBoxCenterPlane,
-                _bBox.X.Length / gridBox.X.Length, _bBox.Y.Length / gridBox.Y.Length,
-                _bBox.Z.Length / gridBox.Z.Length);
 
             return planeToPlane * scale;
         }
