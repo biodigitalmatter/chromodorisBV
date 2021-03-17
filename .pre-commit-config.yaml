@@ -1,6 +1,6 @@
 repos:
--   repo: https://github.com/rkm/mirrors-dotnet-format
-    rev: 2dab66c
+-   repo: https://github.com/dotnet/format
+    rev: 2bb839e
     hooks:
     -   id: dotnet-format
         args: [--include]
